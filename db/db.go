@@ -1,7 +1,6 @@
 package db
 
 import (
-	"errors"
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -10,43 +9,10 @@ import (
 )
 
 type DatabaseHelper interface {
-	OpenDBConnection(dialector gorm.Dialector, config *gorm.Config)
+	OpenDBConnection(dialector gorm.Dialector, config *gorm.Config) error
 	GetDBConnection() *gorm.DB
 	CloseDBConnection() error
-}
-
-type Store struct {
-	db *gorm.DB
-}
-
-func (s *Store) OpenDBConnection(dialector gorm.Dialector, config *gorm.Config) {
-
-	gormDBInstance, err := gorm.Open(dialector, config)
-
-	if err != nil {
-		s.db = nil
-	} else {
-		s.db = gormDBInstance
-	}
-
-}
-
-func (s *Store) GetDBConnection() *gorm.DB {
-	return s.db
-}
-
-func (s *Store) CloseDBConnection() error {
-	if s.db == nil {
-		return errors.New("connection instance is nil")
-	}
-
-	postgresDB, err := s.db.DB()
-
-	if err != nil {
-		return err
-	}
-
-	return postgresDB.Close()
+	Ping() (bool, error)
 }
 
 func CreateDialectorFromEnv() gorm.Dialector {

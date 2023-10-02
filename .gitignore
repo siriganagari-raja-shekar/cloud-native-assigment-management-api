@@ -23,3 +23,8 @@ go.work
 #Environment files
 .env
 
+#Custom files
+*.csv
+
+#IDE files
+.idea/

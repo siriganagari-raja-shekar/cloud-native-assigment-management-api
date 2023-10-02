@@ -2,41 +2,59 @@ package main
 
 import (
 	"bytes"
+	"csye6225-mainproject/routes"
+	"csye6225-mainproject/services"
+	"errors"
 	"gorm.io/gorm"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
-type MockDBStore struct {
+type MockHealthzStore struct {
 	db            *gorm.DB
 	isDBInService bool
 }
 
-func (m *MockDBStore) OpenDBConnection(dialector gorm.Dialector, config *gorm.Config) {
+func (m *MockHealthzStore) OpenDBConnection(dialector gorm.Dialector, config *gorm.Config) error {
 
 	if m.isDBInService {
 		m.db = &gorm.DB{}
+		return nil
 	} else {
 		m.db = nil
+		NotAbleToConnectToDBError := errors.New("not able to connect to database")
+		return NotAbleToConnectToDBError
 	}
 
 }
 
-func (m *MockDBStore) GetDBConnection() *gorm.DB {
+func (m *MockHealthzStore) GetDBConnection() *gorm.DB {
 	return m.db
 }
 
-func (m *MockDBStore) CloseDBConnection() error {
+func (m *MockHealthzStore) CloseDBConnection() error {
 	return nil
+}
+
+func (m *MockHealthzStore) Ping() (bool, error) {
+	if m.isDBInService {
+		return true, nil
+	} else {
+		m.db = nil
+		NotAbleToConnectToDBError := errors.New("not able to connect to database")
+		return false, NotAbleToConnectToDBError
+	}
 }
 
 func TestMainRouter(t *testing.T) {
 
 	t.Run("Calling /healthz endpoint should return 200 status OK when database is not in service", func(t *testing.T) {
 
-		dbHelper := &MockDBStore{isDBInService: true}
-		router := setupRouter(dbHelper)
+		serviceProvider := &services.ServiceProvider{
+			MyHealthzStore: &MockHealthzStore{isDBInService: true},
+		}
+		router := routes.SetupRouter(serviceProvider)
 
 		request := httptest.NewRequest(http.MethodGet, "/healthz", nil)
 		response := httptest.NewRecorder()
@@ -49,8 +67,10 @@ func TestMainRouter(t *testing.T) {
 
 	t.Run("Calling /healthz endpoint should return 503 when database is not in service", func(t *testing.T) {
 
-		dbHelper := &MockDBStore{isDBInService: false}
-		router := setupRouter(dbHelper)
+		serviceProvider := &services.ServiceProvider{
+			MyHealthzStore: &MockHealthzStore{isDBInService: false},
+		}
+		router := routes.SetupRouter(serviceProvider)
 
 		request := httptest.NewRequest(http.MethodGet, "/healthz", nil)
 		response := httptest.NewRecorder()
@@ -62,8 +82,10 @@ func TestMainRouter(t *testing.T) {
 	})
 
 	t.Run("Calling /healthz endpoint with every method except GET should return status 405 not allowed", func(t *testing.T) {
-		dbHelper := &MockDBStore{isDBInService: true}
-		router := setupRouter(dbHelper)
+		serviceProvider := &services.ServiceProvider{
+			MyHealthzStore: &MockHealthzStore{isDBInService: false},
+		}
+		router := routes.SetupRouter(serviceProvider)
 
 		httpMethods := []string{
 			http.MethodPost,
@@ -89,8 +111,10 @@ func TestMainRouter(t *testing.T) {
 
 	t.Run("Accessing invalid URLs should give 404 not found", func(t *testing.T) {
 
-		dbHelper := &MockDBStore{isDBInService: true}
-		router := setupRouter(dbHelper)
+		serviceProvider := &services.ServiceProvider{
+			MyHealthzStore: &MockHealthzStore{isDBInService: false},
+		}
+		router := routes.SetupRouter(serviceProvider)
 
 		someInvalidURLs := []string{
 			"/",
@@ -112,8 +136,10 @@ func TestMainRouter(t *testing.T) {
 	})
 
 	t.Run("Check response should from any request should not have any payload", func(t *testing.T) {
-		dbHelper := &MockDBStore{isDBInService: true}
-		router := setupRouter(dbHelper)
+		serviceProvider := &services.ServiceProvider{
+			MyHealthzStore: &MockHealthzStore{isDBInService: false},
+		}
+		router := routes.SetupRouter(serviceProvider)
 
 		someURLs := []string{
 			"/healthz",
@@ -138,8 +164,10 @@ func TestMainRouter(t *testing.T) {
 
 	t.Run("Requests with payload to valid URLs should return 400", func(t *testing.T) {
 
-		dbHelper := &MockDBStore{isDBInService: true}
-		router := setupRouter(dbHelper)
+		serviceProvider := &services.ServiceProvider{
+			MyHealthzStore: &MockHealthzStore{isDBInService: false},
+		}
+		router := routes.SetupRouter(serviceProvider)
 
 		validURL := "/healthz"
 
@@ -157,8 +185,10 @@ func TestMainRouter(t *testing.T) {
 
 	t.Run("Requests with valid URLs containing parameters should return 400", func(t *testing.T) {
 
-		dbHelper := &MockDBStore{isDBInService: true}
-		router := setupRouter(dbHelper)
+		serviceProvider := &services.ServiceProvider{
+			MyHealthzStore: &MockHealthzStore{isDBInService: false},
+		}
+		router := routes.SetupRouter(serviceProvider)
 
 		someURLs := []string{
 			"/healthz?q1=v1&q2=v2",
@@ -178,8 +208,10 @@ func TestMainRouter(t *testing.T) {
 
 	t.Run("Requests with empty payload to valid URLs should not return 400", func(t *testing.T) {
 
-		dbHelper := &MockDBStore{isDBInService: true}
-		router := setupRouter(dbHelper)
+		serviceProvider := &services.ServiceProvider{
+			MyHealthzStore: &MockHealthzStore{isDBInService: false},
+		}
+		router := routes.SetupRouter(serviceProvider)
 
 		validURL := "/healthz"
 
@@ -194,8 +226,10 @@ func TestMainRouter(t *testing.T) {
 
 	t.Run("Response should not be cached by setting Cache-Control to no-cache header for all URLs", func(t *testing.T) {
 
-		dbHelper := &MockDBStore{isDBInService: true}
-		router := setupRouter(dbHelper)
+		serviceProvider := &services.ServiceProvider{
+			MyHealthzStore: &MockHealthzStore{isDBInService: false},
+		}
+		router := routes.SetupRouter(serviceProvider)
 
 		someURLs := []string{
 			"/healthz",

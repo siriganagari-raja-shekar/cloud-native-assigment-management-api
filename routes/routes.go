@@ -1,15 +1,15 @@
 package routes
 
 import (
-	"csye6225-mainproject/db"
+	"csye6225-mainproject/services"
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(dbHelper db.DatabaseHelper) *gin.Engine {
+func SetupRouter(serviceProvider *services.ServiceProvider) *gin.Engine {
 
 	r := gin.Default()
 
-	r.Any("/healthz", createHealthzHandler(dbHelper))
+	r.Any("/healthz", createHealthzHandler(serviceProvider))
 	r.NoRoute(invalidHandler)
 
 	return r

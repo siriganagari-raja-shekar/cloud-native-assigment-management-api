@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"csye6225-mainproject/db"
+	"csye6225-mainproject/services"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -11,7 +11,7 @@ func invalidHandler(context *gin.Context) {
 	context.String(http.StatusNotFound, "")
 }
 
-func createHealthzHandler(dbHelper db.DatabaseHelper) func(ctx *gin.Context) {
+func createHealthzHandler(serviceProvider *services.ServiceProvider) func(ctx *gin.Context) {
 
 	return func(context *gin.Context) {
 		context.Header("Cache-Control", "no-cache")
@@ -22,15 +22,10 @@ func createHealthzHandler(dbHelper db.DatabaseHelper) func(ctx *gin.Context) {
 				context.String(http.StatusBadRequest, "")
 			}
 
-			dbHelper.OpenDBConnection(db.CreateDialectorFromEnv(), db.CreateDBConfig())
+			connected, _ := serviceProvider.MyHealthzStore.Ping()
 
-			if dbHelper.GetDBConnection() != nil {
-				err := dbHelper.CloseDBConnection()
-				if err != nil {
-					context.String(http.StatusInternalServerError, "")
-				} else {
-					context.String(http.StatusOK, "")
-				}
+			if connected {
+				context.String(http.StatusOK, "")
 			} else {
 				context.String(http.StatusServiceUnavailable, "")
 			}
