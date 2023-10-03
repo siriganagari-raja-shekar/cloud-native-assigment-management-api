@@ -42,7 +42,9 @@ jobs:
       - name: List files in directory
         run: ls -l
       - name: Change into main directory
-        run: cd webapp/cmd/app
+        run: cd ./cmd/app
+      - name: List files in directory
+        run: ls -l
       - name: Running healthz integration test
         run: go test -run TestIntegreationHealthz
         env:
