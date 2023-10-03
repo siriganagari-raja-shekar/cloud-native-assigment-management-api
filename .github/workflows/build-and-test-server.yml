@@ -37,6 +37,8 @@ jobs:
           go-version: ${{ matrix.go-version }}
       - name: Display Go version
         run: go version
+      - name: Install dependencies
+        run: go get .
       - name: Change into main directory
         run: cd cmd/app
       - name: Running healthz integration test
