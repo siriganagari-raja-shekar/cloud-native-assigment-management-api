@@ -13,7 +13,7 @@ func GetHealthzHandler(provider *services.ServiceProvider) func(ctx *gin.Context
 		switch context.Request.Method {
 		case http.MethodGet:
 
-			if !isPayloadEmpty(context) || len(context.Request.URL.RawQuery) > 0 {
+			if context.Request.ContentLength > 0 || len(context.Request.URL.RawQuery) > 0 {
 				context.String(http.StatusBadRequest, "")
 			}
 
@@ -30,12 +30,4 @@ func GetHealthzHandler(provider *services.ServiceProvider) func(ctx *gin.Context
 		}
 	}
 
-}
-
-func isPayloadEmpty(context *gin.Context) bool {
-	body := make([]byte, 1)
-
-	n, _ := context.Request.Body.Read(body)
-
-	return n == 0
 }

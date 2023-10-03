@@ -39,8 +39,13 @@ jobs:
         run: go version
       - name: Install dependencies
         run: go get -u -d ./...
-      - name: List files in directory
-        run: ls -l
+      - name: Make the script files executable
+        run: chmod +x install_db.sh
+      - name: Run shell script to setup database
+        run: ./install_db.sh
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
       - name: Running healthz integration test
         run: |
           cd ./cmd/app

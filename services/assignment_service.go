@@ -9,6 +9,16 @@ type AssignmentStore struct {
 	Database *gorm.DB
 }
 
+func (as *AssignmentStore) GetAll() ([]models.Assignment, error) {
+	var assignments []models.Assignment
+
+	if err := as.Database.Find(&assignments).Error; err != nil {
+		return nil, err
+	} else {
+		return assignments, nil
+	}
+}
+
 func (as *AssignmentStore) GetAllByAccount(accountID string) ([]models.Assignment, error) {
 	var assignments []models.Assignment
 

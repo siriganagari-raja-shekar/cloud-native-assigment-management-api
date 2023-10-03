@@ -3,19 +3,29 @@ package controllers
 import (
 	"csye6225-mainproject/models"
 	"csye6225-mainproject/services"
+	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"io"
 	"net/http"
-	"strings"
 	"time"
 )
+
+var validFields = map[string]string{"name": "", "num_of_attempts": "", "points": "", "deadline": "", "assignment_created": "", "assignment_updated": ""}
 
 func GetGetAllAssignmentsHandler(provider *services.ServiceProvider) func(*gin.Context) {
 
 	return func(context *gin.Context) {
-		account := context.MustGet("currentUserAccount").(models.Account)
 
-		assignments, err := provider.MyAssignmentStore.GetAllByAccount(account.ID)
+		if !isBodyEmpty(context) {
+			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				"error": "Request body should be empty",
+			})
+			return
+		}
+
+		assignments, err := provider.MyAssignmentStore.GetAll()
 
 		if err != nil {
 			context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -34,7 +44,12 @@ func GetGetSingleAssignmentHandler(provider *services.ServiceProvider) func(*gin
 
 	return func(context *gin.Context) {
 
-		account := context.MustGet("currentUserAccount").(models.Account)
+		if !isBodyEmpty(context) {
+			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				"error": "Request body should be empty",
+			})
+			return
+		}
 
 		assignmentID := context.Param("id")
 
@@ -42,7 +57,7 @@ func GetGetSingleAssignmentHandler(provider *services.ServiceProvider) func(*gin
 
 		if err != nil {
 			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-				"error": "Given ID is not valid. Please check again",
+				"error": "Given ID is not a valid UUID. Please check again",
 			})
 			return
 		}
@@ -52,13 +67,6 @@ func GetGetSingleAssignmentHandler(provider *services.ServiceProvider) func(*gin
 		if err != nil {
 			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"error": "Assignment with given ID not found. Please check again",
-			})
-			return
-		}
-
-		if assignment.AccountID != account.ID {
-			context.AbortWithStatusJSON(http.StatusForbidden, gin.H{
-				"error": "You are not authorized to access this assignment",
 			})
 			return
 		} else {
@@ -75,37 +83,16 @@ func GetPostAssignmentHandler(provider *services.ServiceProvider) func(*gin.Cont
 	return func(context *gin.Context) {
 		account := context.MustGet("currentUserAccount").(models.Account)
 
-		assignment := models.Assignment{}
+		assignment, errors := convertBodyToValidAssignment(context)
 
-		if err := context.ShouldBindJSON(&assignment); err != nil {
+		if errors != nil {
 			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-				"error": "One of the constraints is not satisfied",
-				"constraints": []string{
-					"1. Number of points should be between 1 and 100",
-					"2. Number of attempts should be between 1 and 100",
-					"3. Deadline should be a future date",
-				},
+				"errors": errors,
 			})
 			return
 		}
 
-		if assignment.Deadline.Before(time.Now()) {
-			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-				"error": "Deadline should be a future date",
-			})
-			return
-		}
-
-		_, err := provider.MyAssignmentStore.GetOneWithAccountIDAndName(account.ID, assignment.Name)
-
-		if err == nil {
-			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-				"error": "Assignment with given name was already created by you",
-			})
-			return
-		}
-
-		assignment = models.Assignment{
+		assignment = &models.Assignment{
 			AccountID:     account.ID,
 			Name:          assignment.Name,
 			Points:        assignment.Points,
@@ -113,7 +100,7 @@ func GetPostAssignmentHandler(provider *services.ServiceProvider) func(*gin.Cont
 			Deadline:      assignment.Deadline,
 		}
 
-		updatedAssignment, err := provider.MyAssignmentStore.AddOne(&assignment)
+		updatedAssignment, err := provider.MyAssignmentStore.AddOne(assignment)
 		if err != nil {
 			context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 				"error": err.Error(),
@@ -129,6 +116,14 @@ func GetPostAssignmentHandler(provider *services.ServiceProvider) func(*gin.Cont
 func GetDeleteAssignmentsHandler(provider *services.ServiceProvider) func(*gin.Context) {
 
 	return func(context *gin.Context) {
+
+		if !isBodyEmpty(context) {
+			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				"error": "Request body should be empty",
+			})
+			return
+		}
+
 		account := context.MustGet("currentUserAccount").(models.Account)
 
 		assignmentID := context.Param("id")
@@ -137,7 +132,7 @@ func GetDeleteAssignmentsHandler(provider *services.ServiceProvider) func(*gin.C
 
 		if err != nil {
 			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-				"error": "Given ID is not valid. Please check again",
+				"error": "Given ID is not a valid UUID. Please check again",
 			})
 			return
 		}
@@ -206,52 +201,23 @@ func GetPutAssignmentsHandler(provider *services.ServiceProvider) func(*gin.Cont
 			return
 		}
 
-		assignmentFromJSON := models.Assignment{}
+		assignmentFromBody, errors := convertBodyToValidAssignment(context)
 
-		if err := context.ShouldBindJSON(&assignmentFromJSON); err != nil {
+		if errors != nil {
 			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-				"error": "One of the constraints is not satisfied",
-				"constraints": []string{
-					"1. Number of points should be between 1 and 100",
-					"2. Number of attempts should be between 1 and 100",
-					"3. Deadline should be a future date",
-					"4. An ID should not be specified in the request body",
-				},
-			})
-			return
-		}
-
-		if len(strings.TrimSpace(assignmentFromJSON.ID)) > 0 {
-			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-				"error": "Don't specify an ID in the request body",
-			})
-			return
-		}
-
-		if assignmentFromJSON.Deadline.Before(time.Now()) {
-			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-				"error": "Deadline should be a future date",
-			})
-			return
-		}
-
-		dupAssignment, err := provider.MyAssignmentStore.GetOneWithAccountIDAndName(account.ID, assignment.Name)
-
-		if err == nil && dupAssignment.ID != assignment.ID {
-			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-				"error": "Assignment with given name was already created by you",
+				"errors": errors,
 			})
 			return
 		}
 
 		assignment = models.Assignment{
-			Name:          assignment.Name,
-			Points:        assignment.Points,
-			NumOfAttempts: assignment.NumOfAttempts,
-			Deadline:      assignment.Deadline,
+			Name:          assignmentFromBody.Name,
+			Points:        assignmentFromBody.Points,
+			NumOfAttempts: assignmentFromBody.NumOfAttempts,
+			Deadline:      assignmentFromBody.Deadline,
 		}
 
-		_, err = provider.MyAssignmentStore.UpdateOneWithID(&assignment, assignmentID)
+		updatedAssignment, err := provider.MyAssignmentStore.UpdateOneWithID(&assignment, assignmentID)
 
 		if err != nil {
 			context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -259,10 +225,110 @@ func GetPutAssignmentsHandler(provider *services.ServiceProvider) func(*gin.Cont
 			})
 			return
 		} else {
-			context.String(http.StatusNoContent, "")
+			context.JSON(http.StatusOK, updatedAssignment)
 			return
 		}
 
 	}
 
+}
+
+func convertBodyToValidAssignment(context *gin.Context) (*models.Assignment, []string) {
+	jsonBody := extractBodyFromRequest(context.Request.Body)
+
+	var bodyMap map[string]interface{}
+
+	err := json.Unmarshal(jsonBody, &bodyMap)
+
+	if err != nil {
+		return nil, []string{"Invalid JSON. Please check again"}
+	}
+	var errors []string
+	for k, _ := range bodyMap {
+		_, exists := validFields[k]
+		if !exists {
+			errors = append(errors, k+" field in request body is invalid")
+		}
+	}
+
+	if len(errors) > 0 {
+		return nil, errors
+	}
+
+	assignment := &models.Assignment{}
+
+	if name, ok := bodyMap["name"].(string); ok {
+		assignment.Name = name
+	} else {
+		errors = append(errors, "name should be a string")
+	}
+
+	if points, ok := bodyMap["points"].(float64); ok {
+
+		if points == float64(int64(points)) {
+			if points > 0 && points < 101 {
+				assignment.Points = int(points)
+			} else {
+				errors = append(errors, "points should be between 1 and 100")
+			}
+		} else {
+			errors = append(errors, "points should be a valid integer number")
+		}
+
+	} else {
+		errors = append(errors, "points should be a valid integer number")
+	}
+
+	if numOfAttempts, ok := bodyMap["num_of_attempts"].(float64); ok {
+		if numOfAttempts == float64(int64(numOfAttempts)) {
+			if numOfAttempts > 0 && numOfAttempts < 101 {
+				assignment.Points = int(numOfAttempts)
+			} else {
+				errors = append(errors, "num_of_attempts should be between 1 and 100")
+			}
+		} else {
+			errors = append(errors, "num_of_attempts should be a valid integer number")
+		}
+	} else {
+		errors = append(errors, "num_of_attempts should be a valid integer number")
+	}
+
+	if deadline, ok := bodyMap["deadline"].(string); ok {
+		parsedTime, err := time.Parse(time.RFC3339, deadline)
+		if err != nil {
+			errors = append(errors, "deadline should be a valid date-time string. Ex: "+time.RFC3339)
+		} else {
+			if parsedTime.Before(time.Now()) {
+				errors = append(errors, "deadline should be a valid time in the future")
+			} else {
+				assignment.Deadline = parsedTime
+			}
+		}
+	} else {
+		errors = append(errors, "deadline should be a valid date-time string. Ex: "+time.RFC3339)
+	}
+
+	if len(errors) > 0 {
+		return nil, errors
+	} else {
+		return assignment, nil
+	}
+}
+
+func isBodyEmpty(context *gin.Context) bool {
+
+	contentLength := context.Request.ContentLength
+
+	return contentLength == 0
+}
+
+func extractBodyFromRequest(readCloser io.ReadCloser) []byte {
+	body, err := io.ReadAll(readCloser)
+
+	if err != nil {
+		fmt.Printf("Error reading body\n")
+		return make([]byte, 0)
+	} else {
+		return body
+	}
 }
