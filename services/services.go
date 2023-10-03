@@ -24,17 +24,7 @@ func (s *ServiceProvider) PopulateDBInServices() {
 	s.MyAssignmentStore.Database = s.MyHealthzStore.GetDBConnection()
 }
 
-func (s *ServiceProvider) InsertInitalUsersIntoDB() {
-
-	createDBCommand := fmt.Sprintf("CREATE DATABASE %s", os.Getenv("POSTGRES_DB"))
-
-	res := s.MyHealthzStore.GetDBConnection().Exec(createDBCommand)
-
-	if res.Error != nil {
-		fmt.Printf("Database already exists: %v\n", res.Error)
-	} else {
-		fmt.Printf("Database created successfully\n")
-	}
+func (s *ServiceProvider) InsertInitialUsersIntoDB() {
 
 	err := s.MyAssignmentStore.Database.AutoMigrate(&models.Account{})
 	if err != nil {

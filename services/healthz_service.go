@@ -3,7 +3,10 @@ package services
 import (
 	"csye6225-mainproject/db"
 	"errors"
+	"fmt"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"os"
 )
 
 type HealthzStore struct {
@@ -41,15 +44,43 @@ func (hs *HealthzStore) CloseDBConnection() error {
 		return err
 	}
 
+	hs.db = nil
 	return postgresDB.Close()
 }
 
 func (hs *HealthzStore) Ping() (bool, error) {
 
 	if hs.db == nil {
-		err := hs.OpenDBConnection(db.CreateDialectorFromEnv(), db.CreateDBConfig())
+
+		dbConf := db.GetDBConf()
+
+		dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s sslmode=disable", dbConf["host"], dbConf["port"], dbConf["user"], dbConf["password"])
+
+		err := hs.OpenDBConnection(postgres.Open(dsn), db.CreateGORMConfig())
+
 		if err != nil {
 			return false, err
+		}
+
+		createDBCommand := fmt.Sprintf("CREATE DATABASE %s", os.Getenv("POSTGRES_DB"))
+
+		res := hs.db.Exec(createDBCommand)
+
+		if res.Error != nil {
+			fmt.Printf("Database already exists: %v\n", res.Error)
+		} else {
+			fmt.Printf("Database created successfully\n")
+		}
+		err = hs.CloseDBConnection()
+
+		dsn = fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", dbConf["host"], dbConf["port"], dbConf["user"], dbConf["password"], dbConf["dbname"])
+
+		err = hs.OpenDBConnection(postgres.Open(dsn), db.CreateGORMConfig())
+
+		if err != nil {
+			return false, err
+		} else {
+
 		}
 	}
 

@@ -22,7 +22,7 @@ func main() {
 	}
 
 	serviceProvider.PopulateDBInServices()
-	serviceProvider.InsertInitalUsersIntoDB()
+	serviceProvider.InsertInitialUsersIntoDB()
 
 	router := routes.SetupRouter(serviceProvider)
 

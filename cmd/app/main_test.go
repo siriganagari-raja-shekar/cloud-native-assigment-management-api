@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"csye6225-mainproject/conf"
 	"csye6225-mainproject/routes"
 	"csye6225-mainproject/services"
 	"errors"
@@ -45,6 +46,24 @@ func (m *MockHealthzStore) Ping() (bool, error) {
 		NotAbleToConnectToDBError := errors.New("not able to connect to database")
 		return false, NotAbleToConnectToDBError
 	}
+}
+
+func TestIntegreationHealthz(t *testing.T) {
+
+	serviceProvider := &services.ServiceProvider{
+		MyHealthzStore: &services.HealthzStore{},
+	}
+	router := routes.SetupRouter(serviceProvider)
+
+	(&conf.Configuration{}).Set()
+
+	request := httptest.NewRequest(http.MethodGet, "/healthz", nil)
+	response := httptest.NewRecorder()
+
+	router.ServeHTTP(response, request)
+
+	assertErrorCode(t, response.Code, http.StatusOK)
+
 }
 
 func TestMainRouter(t *testing.T) {

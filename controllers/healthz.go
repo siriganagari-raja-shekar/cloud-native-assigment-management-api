@@ -1,4 +1,4 @@
-package routes
+package controllers
 
 import (
 	"csye6225-mainproject/services"
@@ -6,12 +6,7 @@ import (
 	"net/http"
 )
 
-func invalidHandler(context *gin.Context) {
-	context.Header("Cache-Control", "no-cache")
-	context.String(http.StatusNotFound, "")
-}
-
-func createHealthzHandler(serviceProvider *services.ServiceProvider) func(ctx *gin.Context) {
+func GetHealthzHandler(provider *services.ServiceProvider) func(ctx *gin.Context) {
 
 	return func(context *gin.Context) {
 		context.Header("Cache-Control", "no-cache")
@@ -22,7 +17,7 @@ func createHealthzHandler(serviceProvider *services.ServiceProvider) func(ctx *g
 				context.String(http.StatusBadRequest, "")
 			}
 
-			connected, _ := serviceProvider.MyHealthzStore.Ping()
+			connected, _ := provider.MyHealthzStore.Ping()
 
 			if connected {
 				context.String(http.StatusOK, "")

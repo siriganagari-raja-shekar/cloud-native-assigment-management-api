@@ -20,7 +20,7 @@ func (as *AccountStore) GetAll() ([]models.Account, error) {
 	}
 }
 
-func (as *AccountStore) GetOneByID(ID uint) (models.Account, error) {
+func (as *AccountStore) GetOneByID(ID string) (models.Account, error) {
 	var account models.Account
 
 	if err := as.Database.First(&account, models.Account{ID: ID}).Error; err != nil {
