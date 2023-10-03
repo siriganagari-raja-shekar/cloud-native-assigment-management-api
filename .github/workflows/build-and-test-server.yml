@@ -41,12 +41,11 @@ jobs:
         run: go get -u -d ./...
       - name: List files in directory
         run: ls -l
-      - name: Change into main directory
-        run: cd ./cmd/app
-      - name: List files in directory
-        run: ls -l
       - name: Running healthz integration test
-        run: go test -run TestIntegreationHealthz
+        run: 
+          cd ./cmd/app
+          ls -l
+          go test -run TestIntegreationHealthz
         env:
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
