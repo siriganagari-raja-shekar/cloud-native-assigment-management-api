@@ -42,7 +42,7 @@ jobs:
       - name: List files in directory
         run: ls -l
       - name: Running healthz integration test
-        run: 
+        run: |
           cd ./cmd/app
           ls -l
           go test -run TestIntegreationHealthz
