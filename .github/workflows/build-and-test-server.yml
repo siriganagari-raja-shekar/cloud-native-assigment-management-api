@@ -39,8 +39,10 @@ jobs:
         run: go version
       - name: Install dependencies
         run: go get -u -d ./...
+      - name: List files in directory
+        run: ls -l
       - name: Change into main directory
-        run: cd cmd/app
+        run: cd webapp/cmd/app
       - name: Running healthz integration test
         run: go test -run TestIntegreationHealthz
         env:
