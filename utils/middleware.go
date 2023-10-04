@@ -65,3 +65,8 @@ func InvalidHandler(context *gin.Context) {
 	context.Header("Cache-Control", "no-cache")
 	context.String(http.StatusNotFound, "")
 }
+
+func MethodNotAllowedHandler(context *gin.Context) {
+	context.Header("Cache-Control", "no-cache")
+	context.String(http.StatusMethodNotAllowed, "")
+}

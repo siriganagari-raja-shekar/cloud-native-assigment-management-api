@@ -11,6 +11,7 @@ func addAssignmentRoutes(rg *gin.RouterGroup, provider *services.ServiceProvider
 
 	assignments := rg.Group("/assignments")
 
+	assignments.PATCH("/:id", utils.MethodNotAllowedHandler)
 	assignments.Use(utils.UserExtractor(provider))
 	assignments.GET("", controllers.GetGetAllAssignmentsHandler(provider))
 	assignments.GET("/:id", controllers.GetGetSingleAssignmentHandler(provider))
