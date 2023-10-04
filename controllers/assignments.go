@@ -276,13 +276,13 @@ func convertBodyToValidAssignment(context *gin.Context) (*models.Assignment, []s
 		}
 
 	} else {
-		errors = append(errors, "points should be a valid integer number")
+		errors = append(errors, "points should be present and must a valid integer number")
 	}
 
 	if numOfAttempts, ok := bodyMap["num_of_attempts"].(float64); ok {
 		if numOfAttempts == float64(int64(numOfAttempts)) {
 			if numOfAttempts > 0 && numOfAttempts < 101 {
-				assignment.Points = int(numOfAttempts)
+				assignment.NumOfAttempts = int(numOfAttempts)
 			} else {
 				errors = append(errors, "num_of_attempts should be between 1 and 100")
 			}
@@ -290,7 +290,7 @@ func convertBodyToValidAssignment(context *gin.Context) (*models.Assignment, []s
 			errors = append(errors, "num_of_attempts should be a valid integer number")
 		}
 	} else {
-		errors = append(errors, "num_of_attempts should be a valid integer number")
+		errors = append(errors, "num_of_attempts should be present and must be a valid integer number")
 	}
 
 	if deadline, ok := bodyMap["deadline"].(string); ok {

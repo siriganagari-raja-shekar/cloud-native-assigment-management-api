@@ -5,6 +5,7 @@ import (
 	"csye6225-mainproject/routes"
 	"csye6225-mainproject/services"
 	"fmt"
+	"os"
 )
 
 func init() {
@@ -26,7 +27,8 @@ func main() {
 
 	router := routes.SetupRouter(serviceProvider)
 
-	err := router.Run(":8000")
+	serverPort := os.Getenv("SERVER_PORT")
+	err := router.Run(":" + serverPort)
 	if err != nil {
 		fmt.Printf("Fatal server error")
 	}
