@@ -65,7 +65,7 @@ func GetGetSingleAssignmentHandler(provider *services.ServiceProvider) func(*gin
 		assignment, err := provider.MyAssignmentStore.GetOne(assignmentID)
 
 		if err != nil {
-			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			context.AbortWithStatusJSON(http.StatusNotFound, gin.H{
 				"error": "Assignment with given ID not found. Please check again",
 			})
 			return
@@ -140,7 +140,7 @@ func GetDeleteAssignmentsHandler(provider *services.ServiceProvider) func(*gin.C
 		assignment, err := provider.MyAssignmentStore.GetOne(assignmentID)
 
 		if err != nil {
-			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			context.AbortWithStatusJSON(http.StatusNotFound, gin.H{
 				"error": "Assignment with given ID not found. Please check again",
 			})
 			return
@@ -188,7 +188,7 @@ func GetPutAssignmentsHandler(provider *services.ServiceProvider) func(*gin.Cont
 		assignment, err := provider.MyAssignmentStore.GetOne(assignmentID)
 
 		if err != nil {
-			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			context.AbortWithStatusJSON(http.StatusNotFound, gin.H{
 				"error": "Assignment with given ID not found. Please check again",
 			})
 			return
