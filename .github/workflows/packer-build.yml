@@ -42,7 +42,7 @@ jobs:
           sudo chmod 666 users.csv
           echo "$USERS_CSV" > users.csv
           sudo touch webapp-service.service
-          sudo chmod webapp-service.service
+          sudo chmod 666 webapp-service.service
           echo "$WEBAPP_SERVICE" > webapp-service.service
         env:
           USERS_CSV: ${{ secrets.USERS_CSV }}
