@@ -26,6 +26,8 @@ go.work
 #Custom files
 *.csv
 *.bak
+*.zip
+*.service
 
 #IDE files
 .idea/

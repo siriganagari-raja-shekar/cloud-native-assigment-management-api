@@ -1,0 +1,71 @@
+name: build-packer
+
+on:
+  push:
+    branches:
+      - main
+      - development
+env:
+  PRODUCT_VERSION: "latest"
+
+jobs:
+  validate-packer:
+    runs-on: ubuntu-latest
+    name: Run Packer
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup `packer`
+        uses: hashicorp/setup-packer@main
+        with:
+          version: ${{ env.PRODUCT_VERSION }}
+
+      - name: Setup Go 1.21.1
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21.1
+
+      - name: Install dependencies
+        run: go get -u -d ./...
+
+      - name: Build application and copy binary to project root
+        run: |
+          cd cmd/app
+          go build
+          sudo cp app ./../../
+          cd ./../../
+
+      - name: Populate required files in project root
+        run: |
+          sudo touch users.csv
+          sudo chmod 666 users.csv
+          echo "$USERS_CSV" > users.csv
+          sudo touch webapp-service.service
+          sudo chmod webapp-service.service
+          echo "$WEBAPP_SERVICE" > webapp-service.service
+        env:
+          USERS_CSV: ${{ secrets.USERS_CSV }}
+          WEBAPP_SERVICE: ${{ secrets.WEBAPP_SERVICE }}
+
+      - name: Zip the artifacts
+        run: |
+          sudo apt-get update
+          sudo apt-get install zip -y
+          sudo zip app.zip app users.csv webapp-service.service
+
+      - name: Build AMI using Packer
+        run: |
+          packer build .
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.DEV_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
+          PKR_VAR_aws_region: ${{ vars.AWS_REGION }}
+          PKR_VAR_dev_subnet_id: ${{ vars.DEV_SUBNET_ID }}
+          PKR_VAR_postgres_host: ${{ vars.POSTGRES_HOST }}
+          PKR_VAR_postgres_port: ${{ vars.POSTGRES_PORT }}
+          PKR_VAR_postgres_user: ${{ vars.POSTGRES_USER }}
+          PKR_VAR_postgres_password: ${{ vars.POSTGRES_PASSWORD }}
+          PKR_VAR_postgres_db: ${{ vars.POSTGRES_DB }}
+          PKR_VAR_account_csv_path: ${{ vars.ACCOUNT_CSV_PATH }}
+          PKR_VAR_server_port: ${{ vars.SERVER_PORT }}

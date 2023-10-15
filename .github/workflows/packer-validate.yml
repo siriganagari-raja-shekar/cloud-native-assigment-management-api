@@ -1,0 +1,44 @@
+name: validate-packer
+
+on:
+  pull_request:
+    branches:
+      - main
+      - development
+env:
+  PRODUCT_VERSION: "latest"
+
+jobs:
+  validate-packer:
+    runs-on: ubuntu-latest
+    name: Run Packer
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup `packer`
+        uses: hashicorp/setup-packer@main
+        with:
+          version: ${{ env.PRODUCT_VERSION }}
+
+      - name: Run `packer init`
+        id: init
+        run: "packer init ."
+
+      - name: Run `packer fmt`
+        id: init
+        run: "packer fmt ."
+
+      - name: Run `packer validate`
+        id: validate
+        run: "packer validate ."
+        env:
+          PKR_VAR_aws_region: ${{ vars.AWS_REGION }}
+          PKR_VAR_dev_subnet_id: ${{ vars.DEV_SUBNET_ID }}
+          PKR_VAR_postgres_host: ${{ vars.POSTGRES_HOST }}
+          PKR_VAR_postgres_port: ${{ vars.POSTGRES_PORT }}
+          PKR_VAR_postgres_user: ${{ vars.POSTGRES_USER }}
+          PKR_VAR_postgres_password: ${{ vars.POSTGRES_PASSWORD }}
+          PKR_VAR_postgres_db: ${{ vars.POSTGRES_DB }}
+          PKR_VAR_account_csv_path: ${{ vars.ACCOUNT_CSV_PATH }}
+          PKR_VAR_server_port: ${{ vars.SERVER_PORT }}
