@@ -54,6 +54,9 @@ jobs:
           sudo apt-get install zip -y
           sudo zip app.zip app users.csv webapp-service.service
 
+      - name: Run `packer init`
+        run: "packer init ."
+
       - name: Build AMI using Packer
         run: |
           packer build .
