@@ -6,18 +6,16 @@ on:
       - main
       - development
 jobs:
-  build:
+  run-integration-test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        go-version: ['1.21.x' ]
+    name: run-integration-test
     steps:
       - name: Checkout repository code
         uses: actions/checkout@v4
       - name: Setup Go ${{ matrix.go-version }}
         uses: actions/setup-go@v4
         with:
-          go-version: ${{ matrix.go-version }}
+          go-version: 1.21.1
       - name: Display Go version
         run: go version
       - name: Install dependencies

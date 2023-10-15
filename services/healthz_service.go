@@ -59,6 +59,7 @@ func (hs *HealthzStore) Ping() (bool, error) {
 		err := hs.OpenDBConnection(postgres.Open(dsn), db.CreateGORMConfig())
 
 		if err != nil {
+			fmt.Printf("Unable to open DB connection with error: %v", err)
 			return false, err
 		}
 
