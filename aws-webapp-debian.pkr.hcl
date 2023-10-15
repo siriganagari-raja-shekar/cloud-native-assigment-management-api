@@ -57,7 +57,9 @@ build {
       "POSTGRES_PASSWORD=${var.postgres_password}",
       "POSTGRES_DB=${var.postgres_db}",
       "ACCOUNT_CSV_PATH=${var.account_csv_path}",
-      "SERVER_PORT=${var.server_port}"
+      "SERVER_PORT=${var.server_port}",
+      "DEBIAN_FRONTEND=noninteractive",
+      "CHECKPOINT_DISABLE=1"
     ]
   }
 

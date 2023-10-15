@@ -22,7 +22,6 @@ func (hs *HealthzStore) OpenDBConnection(dialector gorm.Dialector, config *gorm.
 
 	if err != nil {
 		hs.db = nil
-		fmt.Printf("Unable to open DB connection with error in OpenConnection(): %v\n", err)
 		return err
 	} else {
 		hs.db = gormDBInstance
@@ -57,12 +56,9 @@ func (hs *HealthzStore) Ping() (bool, error) {
 
 		dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s sslmode=disable", dbConf["host"], dbConf["port"], dbConf["user"], dbConf["password"])
 
-		fmt.Printf("DSN while creating DB: %s\n", dsn)
-
 		err := hs.OpenDBConnection(postgres.Open(dsn), db.CreateGORMConfig())
 
 		if err != nil {
-			fmt.Printf("Unable to open DB connection with error in Ping(): %v\n", err)
 			return false, err
 		}
 
@@ -78,8 +74,6 @@ func (hs *HealthzStore) Ping() (bool, error) {
 		err = hs.CloseDBConnection()
 
 		dsn = fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", dbConf["host"], dbConf["port"], dbConf["user"], dbConf["password"], dbConf["dbname"])
-
-		fmt.Printf("DSN while connecting to DB: %s\n", dsn)
 
 		err = hs.OpenDBConnection(postgres.Open(dsn), db.CreateGORMConfig())
 

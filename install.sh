@@ -3,6 +3,7 @@
 # Installing updates and required packages
 sudo apt update
 sudo apt-get update
+sudo apt-get upgrade -y
 sudo apt-get install zip unzip -y
 
 # Check if the required environment variables are set
@@ -36,31 +37,6 @@ sudo pg_isready
 
 echo "PostgreSQL installed, user handling completed, and PostgreSQL server started."
 
-# Define the desired Go version
-GO_VERSION="1.21.1"
-
-# Set the download URL for the Go binary (adjust the version if needed)
-GO_URL="https://golang.org/dl/go$GO_VERSION.linux-amd64.tar.gz"
-
-# Set the installation directory
-INSTALL_DIR="/usr/local"
-
-# Download and extract the Go binary
-sudo curl -O -L $GO_URL
-sudo tar -C $INSTALL_DIR -xzf go$GO_VERSION.linux-amd64.tar.gz
-
-# Add Go binary directory to PATH (if not already added)
-if [[ ":$PATH:" != *":$INSTALL_DIR/go/bin:"* ]]; then
-    echo "export PATH=$PATH:$INSTALL_DIR/go/bin" >> ~/.bashrc
-    source ~/.bashrc
-fi
-
-# Clean up downloaded archive
-rm go$GO_VERSION.linux-amd64.tar.gz
-
-# Verify the installation
-go version
-
 # Unzip files from tmp directory and copy to necessary locations
 cd /tmp/
 sudo unzip app.zip
@@ -80,5 +56,7 @@ sudo systemctl daemon-reload
 sudo systemctl enable webapp-service.service
 sudo systemctl start webapp-service.service
 sudo systemctl status webapp-service.service
+
+sudo apt-get clean
 
 
