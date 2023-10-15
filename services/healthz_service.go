@@ -22,6 +22,7 @@ func (hs *HealthzStore) OpenDBConnection(dialector gorm.Dialector, config *gorm.
 
 	if err != nil {
 		hs.db = nil
+		fmt.Printf("Unable to open DB connection with error in OpenConnection(): %v", err)
 		return err
 	} else {
 		hs.db = gormDBInstance
@@ -59,7 +60,7 @@ func (hs *HealthzStore) Ping() (bool, error) {
 		err := hs.OpenDBConnection(postgres.Open(dsn), db.CreateGORMConfig())
 
 		if err != nil {
-			fmt.Printf("Unable to open DB connection with error: %v", err)
+			fmt.Printf("Unable to open DB connection with error in Ping(): %v", err)
 			return false, err
 		}
 
