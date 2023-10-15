@@ -11,7 +11,7 @@ env:
 jobs:
   validate-packer:
     runs-on: ubuntu-latest
-    name: Run Packer
+    name: packer-validate
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -26,6 +26,9 @@ jobs:
 
       - name: Run `packer fmt`
         run: "packer fmt ."
+
+      - name: Dummy artifact for validation
+        run: "sudo touch app.zip"
 
       - name: Run `packer validate`
         run: "packer validate ."

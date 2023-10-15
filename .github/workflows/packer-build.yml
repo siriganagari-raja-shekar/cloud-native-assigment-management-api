@@ -11,7 +11,7 @@ env:
 jobs:
   validate-packer:
     runs-on: ubuntu-latest
-    name: Run Packer
+    name: packer-build
     steps:
       - name: Checkout
         uses: actions/checkout@v3
