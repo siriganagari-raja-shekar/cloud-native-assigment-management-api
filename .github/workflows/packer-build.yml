@@ -13,6 +13,14 @@ jobs:
     runs-on: ubuntu-latest
     name: packer-build
     steps:
+      - name: Wait for integration test to finish successfully
+        uses: lewagon/wait-on-check-action@v1.3.1
+        with:
+          ref: ${{ github.ref }}
+          check-name: 'run-integration-test'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 10
+
       - name: Checkout
         uses: actions/checkout@v3
 
