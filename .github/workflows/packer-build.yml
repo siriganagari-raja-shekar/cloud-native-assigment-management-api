@@ -11,6 +11,8 @@ env:
 jobs:
   validate-packer:
     runs-on: ubuntu-latest
+    permissions:
+      checks: read
     name: packer-build
     steps:
       - name: Wait for integration test to finish successfully
