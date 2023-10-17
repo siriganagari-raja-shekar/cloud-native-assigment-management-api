@@ -16,6 +16,8 @@ variable "postgres_password" {}
 variable "postgres_db" {}
 variable "account_csv_path" {}
 variable "server_port" {}
+variable "source_ami_id" {}
+variable "ssh_username" {}
 
 source "amazon-ebs" "webapp" {
   ami_name      = "csye6225-webapp-debian-aws"
@@ -23,7 +25,7 @@ source "amazon-ebs" "webapp" {
   region        = "${var.aws_region}"
   source_ami_filter {
     filters = {
-      image-id            = "ami-06db4d78cb1d3bbf9"
+      image-id            = "${var.source_ami_id}"
       root-device-type    = "ebs"
       virtualization-type = "hvm"
     }
@@ -33,7 +35,7 @@ source "amazon-ebs" "webapp" {
 
   ami_users    = ["149723291571"]
   subnet_id    = "${var.dev_subnet_id}"
-  ssh_username = "admin"
+  ssh_username = "${var.ssh_username}"
 }
 
 build {

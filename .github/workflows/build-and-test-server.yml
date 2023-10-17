@@ -1,6 +1,10 @@
 name: build-and-test-server
 run-name: ${{ github.actor }} is building and testing server
 on:
+  push:
+    branches:
+      - main
+      - development
   pull_request:
     branches:
       - main

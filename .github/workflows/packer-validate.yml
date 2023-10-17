@@ -34,6 +34,8 @@ jobs:
         run: "packer validate ."
         env:
           PKR_VAR_aws_region: ${{ vars.AWS_REGION }}
+          PKR_VAR_source_ami_id: ${{ vars.SOURCE_AMI_ID }}
+          PKR_VAR_ssh_username: ${{ secrets.SSH_USERNAME }}
           PKR_VAR_dev_subnet_id: ${{ vars.DEV_SUBNET_ID }}
           PKR_VAR_postgres_host: ${{ vars.POSTGRES_HOST }}
           PKR_VAR_postgres_port: ${{ vars.POSTGRES_PORT }}
