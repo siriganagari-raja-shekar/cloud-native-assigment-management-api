@@ -13,13 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     name: packer-build
     steps:
-      - name: Wait for integration test to finish successfully
-        uses: lewagon/wait-on-check-action@v1.3.1
-        with:
-          ref: ${{ github.ref }}
-          check-name: 'run-integration-test'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 10
 
       - name: Checkout
         uses: actions/checkout@v3
@@ -34,12 +27,37 @@ jobs:
         with:
           go-version: 1.21.1
 
+      - name: Display Go version
+        run: go version
+
       - name: Install dependencies
         run: go get -u -d ./...
 
+      - name: Make the script files executable
+        run: chmod +x install_db.sh
+
+      - name: Run shell script to setup database
+        run: ./install_db.sh
+        env:
+          POSTGRES_USER: ${{ vars.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ vars.POSTGRES_PASSWORD }}
+
+      - name: Running healthz integration test
+        run: |
+          cd ./cmd/app
+          ls -l
+          go test -run TestIntegreationHealthz
+          cd ./../../
+        env:
+          POSTGRES_HOST: ${{ vars.POSTGRES_HOST }}
+          POSTGRES_PORT: ${{ vars.POSTGRES_PORT }}
+          POSTGRES_USER: ${{ vars.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ vars.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ vars.POSTGRES_DB }}
+
       - name: Build application and copy binary to project root
         run: |
-          cd cmd/app
+          cd ./cmd/app
           go build
           sudo cp app ./../../
           cd ./../../
