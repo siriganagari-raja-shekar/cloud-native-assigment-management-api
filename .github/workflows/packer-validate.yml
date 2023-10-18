@@ -25,7 +25,7 @@ jobs:
         run: "packer init ."
 
       - name: Run `packer fmt`
-        run: "packer fmt ."
+        run: "packer fmt -check ."
 
       - name: Dummy artifact for validation
         run: "sudo touch app.zip"
