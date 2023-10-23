@@ -25,7 +25,7 @@ source "amazon-ebs" "webapp" {
   region        = "${var.aws_region}"
   source_ami_filter {
     filters = {
-      image-id            = "${var.source_ami_ids}"
+      image-id            = "${var.source_ami_id}"
       root-device-type    = "ebs"
       virtualization-type = "hvm"
     }
