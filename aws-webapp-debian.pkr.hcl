@@ -19,7 +19,7 @@ variable "server_port" {}
 variable "source_ami_id" {}
 variable "ssh_username" {}
 
-source "amazon-ebs" "webapp" {
+source "amazon-ebs" "webapp"   {
   ami_name      = "csye6225-webapp-debian-${formatdate("YYYY_MM_DD_hh_mm_ss", timestamp())}"
   instance_type = "t2.micro"
   region        = "${var.aws_region}"
