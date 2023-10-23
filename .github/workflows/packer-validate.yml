@@ -37,10 +37,7 @@ jobs:
           PKR_VAR_source_ami_id: ${{ vars.SOURCE_AMI_ID }}
           PKR_VAR_ssh_username: ${{ secrets.SSH_USERNAME }}
           PKR_VAR_dev_subnet_id: ${{ vars.DEV_SUBNET_ID }}
-          PKR_VAR_postgres_host: ${{ vars.POSTGRES_HOST }}
-          PKR_VAR_postgres_port: ${{ vars.POSTGRES_PORT }}
-          PKR_VAR_postgres_user: ${{ vars.POSTGRES_USER }}
-          PKR_VAR_postgres_password: ${{ vars.POSTGRES_PASSWORD }}
-          PKR_VAR_postgres_db: ${{ vars.POSTGRES_DB }}
+          PKR_VAR_linux_group: ${{ vars.LINUX_GROUP }}
+          PKR_VAR_linux_user: ${{ vars.LINUX_USER }}
+          PKR_VAR_user_home_dir: ${{ vars.USER_HOME_DIR }}
           PKR_VAR_account_csv_path: ${{ vars.ACCOUNT_CSV_PATH }}
-          PKR_VAR_server_port: ${{ vars.SERVER_PORT }}

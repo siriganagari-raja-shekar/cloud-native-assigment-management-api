@@ -9,15 +9,14 @@ packer {
 
 variable "aws_region" {}
 variable "dev_subnet_id" {}
-variable "postgres_host" {}
-variable "postgres_port" {}
-variable "postgres_user" {}
-variable "postgres_password" {}
-variable "postgres_db" {}
-variable "account_csv_path" {}
-variable "server_port" {}
 variable "source_ami_id" {}
 variable "ssh_username" {}
+
+variable "linux_group" {}
+variable "linux_user" {}
+variable "user_home_dir" {}
+variable "account_csv_path" {}
+
 
 source "amazon-ebs" "webapp" {
   ami_name      = "csye6225-webapp-debian-${formatdate("YYYY_MM_DD_hh_mm_ss", timestamp())}"
@@ -53,13 +52,10 @@ build {
   provisioner "shell" {
     scripts = ["install.sh"]
     environment_vars = [
-      "POSTGRES_HOST=${var.postgres_host}",
-      "POSTGRES_PORT=${var.postgres_port}",
-      "POSTGRES_USER=${var.postgres_user}",
-      "POSTGRES_PASSWORD=${var.postgres_password}",
-      "POSTGRES_DB=${var.postgres_db}",
+      "LINUX_GROUP=${var.linux_group}",
+      "LINUX_USER=${var.linux_user}",
+      "USER_HOME_DIR=${var.user_home_dir}",
       "ACCOUNT_CSV_PATH=${var.account_csv_path}",
-      "SERVER_PORT=${var.server_port}",
       "DEBIAN_FRONTEND=noninteractive",
       "CHECKPOINT_DISABLE=1"
     ]
