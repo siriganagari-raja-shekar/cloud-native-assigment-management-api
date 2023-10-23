@@ -17,7 +17,7 @@ sudo cp app $USER_HOME_DIR
 sudo cp users.csv $ACCOUNT_CSV_PATH
 
 # Navigate to webapp
-cd /opt/webapp
+cd $USER_HOME_DIR
 
 # Set permissions for server
 sudo chown $LINUX_USER:$LINUX_GROUP ./app
