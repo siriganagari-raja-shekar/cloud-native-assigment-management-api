@@ -16,6 +16,12 @@ sudo cp webapp-service.service /etc/systemd/system/webapp-service.service
 sudo cp app $USER_HOME_DIR
 sudo cp users.csv $ACCOUNT_CSV_PATH
 
+# Create log files
+sudo touch $STANDARD_LOG_FILE
+sudo touch $ERROR_LOG_FILE
+sudo chown $LINUX_USER:$LINUX_GROUP $STANDARD_LOG_FILE $ERROR_LOG_FILE
+sudo chmod 600 $STANDARD_LOG_FILE $ERROR_LOG_FILE
+
 # Navigate to webapp
 cd $USER_HOME_DIR
 

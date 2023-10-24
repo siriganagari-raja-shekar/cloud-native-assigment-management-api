@@ -29,7 +29,12 @@ variable "linux_user" {
 variable "user_home_dir" {
   type = string
 }
-
+variable "standard_log_file"{
+  type = string
+}
+variable "error_log_file"{
+  type = string
+}
 variable "account_csv_path" {
   type = string
 }
@@ -73,6 +78,8 @@ build {
       "LINUX_USER=${var.linux_user}",
       "USER_HOME_DIR=${var.user_home_dir}",
       "ACCOUNT_CSV_PATH=${var.account_csv_path}",
+      "STANDARD_LOG_FILE=${var.standard_log_file}",
+      "ERROR_LOG_FILE=${var.error_log_file}",
       "DEBIAN_FRONTEND=noninteractive",
       "CHECKPOINT_DISABLE=1"
     ]

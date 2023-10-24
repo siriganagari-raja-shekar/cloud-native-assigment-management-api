@@ -46,4 +46,6 @@ jobs:
           PKR_VAR_linux_group: ${{ vars.LINUX_GROUP }}
           PKR_VAR_linux_user: ${{ vars.LINUX_USER }}
           PKR_VAR_user_home_dir: ${{ vars.USER_HOME_DIR }}
+          PKR_VAR_standard_log_file: ${{ vars.SERVICE_LOG_FILE }}
+          PKR_VAR_error_log_file: ${{ vars.SERVICE_ERROR_LOG_FILE }}
           PKR_VAR_account_csv_path: ${{ vars.ACCOUNT_CSV_PATH }}

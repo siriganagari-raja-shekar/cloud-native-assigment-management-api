@@ -11,8 +11,8 @@ EnvironmentFile=ENV_FILE_PATH
 ExecStart=WORKING_DIR/app
 Restart=on-failure
 RestartSec=5s
-StandardOutput= >> STANDARD_LOG_FILE
-StandardError= >> ERROR_LOG_FILE
+StandardOutput=append:STANDARD_LOG_FILE
+StandardError=append:ERROR_LOG_FILE
 
 [Install]
 WantedBy=cloud-init.target
