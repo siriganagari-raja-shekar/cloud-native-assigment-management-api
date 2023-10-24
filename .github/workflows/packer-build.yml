@@ -70,12 +70,8 @@ jobs:
           sudo touch users.csv
           sudo chmod 666 users.csv
           echo "$USERS_CSV" > users.csv
-          sudo touch webapp-service.service
-          sudo chmod 666 webapp-service.service
-          echo "$WEBAPP_SERVICE" > webapp-service.service
         env:
           USERS_CSV: ${{ secrets.USERS_CSV }}
-          WEBAPP_SERVICE: ${{ secrets.WEBAPP_SERVICE }}
 
       - name: Populate service template file
         run: |
@@ -85,7 +81,8 @@ jobs:
           sudo sed -i "s#ENV_FILE_PATH#$ENV_FILE_PATH#g" webapp-service-template.service
           sudo sed -i "s#LOG_FILE#$LOG_FILE#g" webapp-service-template.service
           sudo sed -i "s#ERROR_LOG_FILE#$ERROR_LOG_FILE#g" webapp-service-template.service
-
+          sudo mv webapp-service-template.service webapp-service.service
+          sudo chmod 666 webapp-service.service
         env:
           LINUX_USER: ${{ vars.LINUX_USER }}
           LINUX_GROUP: ${{ vars.LINUX_GROUP }}
