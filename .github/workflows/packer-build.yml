@@ -83,6 +83,7 @@ jobs:
           sudo sed -i "s#ERROR_LOG_FILE#$ERROR_LOG_FILE#g" webapp-service-template.service
           sudo mv webapp-service-template.service webapp-service.service
           sudo chmod 666 webapp-service.service
+          sudo cat webapp-service.service
         env:
           LINUX_USER: ${{ vars.LINUX_USER }}
           LINUX_GROUP: ${{ vars.LINUX_GROUP }}
