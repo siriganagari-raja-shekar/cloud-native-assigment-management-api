@@ -79,7 +79,7 @@ jobs:
           sudo sed -i "s#LINUX_GROUP#$LINUX_GROUP#g" webapp-service-template.service
           sudo sed -i "s#WORKING_DIR#$WORKING_DIR#g" webapp-service-template.service
           sudo sed -i "s#ENV_FILE_PATH#$ENV_FILE_PATH#g" webapp-service-template.service
-          sudo sed -i "s#LOG_FILE#$LOG_FILE#g" webapp-service-template.service
+          sudo sed -i "s#STANDARD_LOG_FILE#$STANDARD_LOG_FILE#g" webapp-service-template.service
           sudo sed -i "s#ERROR_LOG_FILE#$ERROR_LOG_FILE#g" webapp-service-template.service
           sudo mv webapp-service-template.service webapp-service.service
           sudo chmod 666 webapp-service.service
@@ -88,7 +88,7 @@ jobs:
           LINUX_GROUP: ${{ vars.LINUX_GROUP }}
           WORKING_DIR: ${{ vars.USER_HOME_DIR }}
           ENV_FILE_PATH: ${{ vars.SERVICE_ENV_FILE_PATH }}
-          LOG_FILE: ${{ vars.SERVICE_LOG_FILE }}
+          STANDARD_LOG_FILE: ${{ vars.SERVICE_LOG_FILE }}
           ERROR_LOG_FILE: ${{ vars.SERVICE_ERROR_LOG_FILE }}
 
       - name: Zip the artifacts and copy to packer folder
