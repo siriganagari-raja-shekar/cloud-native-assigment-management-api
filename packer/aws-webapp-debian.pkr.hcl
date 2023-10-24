@@ -29,10 +29,10 @@ variable "linux_user" {
 variable "user_home_dir" {
   type = string
 }
-variable "standard_log_file"{
+variable "standard_log_file" {
   type = string
 }
-variable "error_log_file"{
+variable "error_log_file" {
   type = string
 }
 variable "account_csv_path" {
