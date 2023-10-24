@@ -1,0 +1,18 @@
+[Unit]
+Description=Webapp Gin server
+After=cloud-final.service
+
+[Service]
+User=LINUX_USER
+Group=LINUX_GROUP
+Type=simple
+WorkingDirectory=WORKING_DIR
+EnvironmentFile=ENV_FILE_PATH
+ExecStart=WORKING_DIR/app
+Restart=on-failure
+RestartSec=5s
+StandardOutput= >> LOG_FILE
+StandardError= >> ERROR_LOG_FILE
+
+[Install]
+WantedBy=cloud-init.target

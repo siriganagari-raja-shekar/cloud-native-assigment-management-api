@@ -22,16 +22,22 @@ jobs:
           version: ${{ env.PRODUCT_VERSION }}
 
       - name: Run `packer init`
-        run: "packer init ."
+        run: |
+          cd ./packer
+          packer init .
 
       - name: Run `packer fmt`
-        run: "packer fmt -check ."
+        run: |
+          cd ./packer
+          packer fmt -check .
 
       - name: Dummy artifact for validation
-        run: "sudo touch app.zip"
+        run: "sudo touch packer/app.zip"
 
       - name: Run `packer validate`
-        run: "packer validate ."
+        run: |
+          cd ./packer
+          packer validate .
         env:
           PKR_VAR_aws_region: ${{ vars.AWS_REGION }}
           PKR_VAR_source_ami_id: ${{ vars.SOURCE_AMI_ID }}

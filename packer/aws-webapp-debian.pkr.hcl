@@ -7,15 +7,32 @@ packer {
   }
 }
 
-variable "aws_region" {}
-variable "dev_subnet_id" {}
-variable "source_ami_id" {}
-variable "ssh_username" {}
+variable "aws_region" {
+  type = string
+}
+variable "dev_subnet_id" {
+  type = string
+}
+variable "source_ami_id" {
+  type = string
+}
+variable "ssh_username" {
+  type = string
+}
 
-variable "linux_group" {}
-variable "linux_user" {}
-variable "user_home_dir" {}
-variable "account_csv_path" {}
+variable "linux_group" {
+  type = string
+}
+variable "linux_user" {
+  type = string
+}
+variable "user_home_dir" {
+  type = string
+}
+
+variable "account_csv_path" {
+  type = string
+}
 
 
 source "amazon-ebs" "webapp" {
