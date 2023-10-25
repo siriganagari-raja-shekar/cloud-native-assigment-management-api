@@ -26,6 +26,12 @@ func (s *ServiceProvider) PopulateDBInServices() {
 
 func (s *ServiceProvider) InsertInitialUsersIntoDB() {
 
+	connected, _ := s.MyHealthzStore.Ping()
+
+	if !connected {
+		return
+	}
+
 	err := s.MyAssignmentStore.Database.AutoMigrate(&models.Account{})
 	if err != nil {
 		fmt.Printf("Error migrating accounts: %v\n", err)

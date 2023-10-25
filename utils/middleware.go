@@ -12,6 +12,16 @@ import (
 func UserExtractor(provider *services.ServiceProvider) func(context *gin.Context) {
 
 	return func(context *gin.Context) {
+
+		connected, _ := provider.MyHealthzStore.Ping()
+
+		if !connected {
+			context.AbortWithStatus(http.StatusServiceUnavailable)
+			return
+		} else {
+			provider.PopulateDBInServices()
+		}
+
 		authorization := context.Request.Header.Get("Authorization")
 
 		authorization, found := strings.CutPrefix(authorization, "Basic ")
