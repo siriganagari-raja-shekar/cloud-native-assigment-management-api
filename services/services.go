@@ -5,6 +5,7 @@ import (
 	"csye6225-mainproject/models"
 	"encoding/csv"
 	"fmt"
+	"log/slog"
 	"os"
 )
 
@@ -12,12 +13,14 @@ type ServiceProvider struct {
 	MyAccountStore    AccountStore
 	MyAssignmentStore AssignmentStore
 	MyHealthzStore    db.DatabaseHelper
+	MyStatsStore      StatsStore
 }
 
 func (s *ServiceProvider) PopulateDBInServices() {
-	connected, _ := s.MyHealthzStore.Ping()
+	connected, err := s.MyHealthzStore.Ping()
 
 	if !connected {
+		slog.Warn(fmt.Sprintf("Unable to connect to database and poupulate services: %s", err))
 		return
 	}
 	s.MyAccountStore.Database = s.MyHealthzStore.GetDBConnection()
@@ -34,18 +37,20 @@ func (s *ServiceProvider) InsertInitialUsersIntoDB() {
 
 	err := s.MyAssignmentStore.Database.AutoMigrate(&models.Account{})
 	if err != nil {
-		fmt.Printf("Error migrating accounts: %v\n", err)
+		slog.Error(fmt.Sprintf("Init process: Error migrating accounts: %v\n", err))
 	}
 
 	err = s.MyAccountStore.Database.AutoMigrate(&models.Assignment{})
 	if err != nil {
-		fmt.Printf("Error migrating assignments\n: %v", err)
+		slog.Error(fmt.Sprintf("Init process: Error migrating assignments\n: %v", err))
 	}
+
+	slog.Info("Init process: Successfully migrated models")
 
 	file, err := os.Open(os.Getenv("ACCOUNT_CSV_PATH"))
 
 	if err != nil {
-		fmt.Printf("Error opening file. Check file path and permissions : %v\n", err)
+		slog.Error(fmt.Sprintf("Init process: Error opening file. Check file path and permissions : %v\n", err))
 		return
 	}
 	defer file.Close()
@@ -55,7 +60,7 @@ func (s *ServiceProvider) InsertInitialUsersIntoDB() {
 	lines, err := reader.ReadAll()
 
 	if err != nil {
-		fmt.Printf("Error reading lines from file: %v\n", err)
+		slog.Error(fmt.Sprintf("Init process: Error reading lines from file: %v\n", err))
 		return
 	}
 
@@ -70,8 +75,10 @@ func (s *ServiceProvider) InsertInitialUsersIntoDB() {
 		account, err := s.MyAccountStore.AddOne(account)
 
 		if err != nil {
-			fmt.Printf("Error adding user to database: %v\n", err)
+			slog.Warn(fmt.Sprintf("Init process: Error adding user to database: %v\n", err))
 		}
 	}
+
+	slog.Info("Init process: Successfully updated default users")
 
 }

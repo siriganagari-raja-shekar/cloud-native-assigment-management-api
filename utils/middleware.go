@@ -3,10 +3,13 @@ package utils
 import (
 	"csye6225-mainproject/services"
 	"encoding/base64"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
+	"log/slog"
 	"net/http"
 	"strings"
+	"time"
 )
 
 func UserExtractor(provider *services.ServiceProvider) func(context *gin.Context) {
@@ -16,9 +19,11 @@ func UserExtractor(provider *services.ServiceProvider) func(context *gin.Context
 		connected, _ := provider.MyHealthzStore.Ping()
 
 		if !connected {
+			slog.Info("Health check before request: Cannot connect to database, aborting request processing")
 			context.AbortWithStatus(http.StatusServiceUnavailable)
 			return
 		} else {
+			slog.Info("Health check before request: Database is online, proceeding with request")
 			provider.PopulateDBInServices()
 		}
 
@@ -42,6 +47,7 @@ func UserExtractor(provider *services.ServiceProvider) func(context *gin.Context
 		user, err := provider.MyAccountStore.GetOneByEmail(emailAndPassword[0])
 
 		if err != nil {
+			slog.Warn(fmt.Sprintf("Unauthorized user login with email %s", emailAndPassword[0]))
 			context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "User not found in the database. Please check your email and try again",
 			})
@@ -51,6 +57,7 @@ func UserExtractor(provider *services.ServiceProvider) func(context *gin.Context
 		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(emailAndPassword[1]))
 
 		if err != nil {
+			slog.Info(fmt.Sprintf("User with email %s logged in with wrong password", user.Email))
 			context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "Password is wrong. Please check and try again",
 			})
@@ -71,9 +78,29 @@ func UserExtractor(provider *services.ServiceProvider) func(context *gin.Context
 
 }
 
-func InvalidHandler(context *gin.Context) {
-	context.Header("Cache-Control", "no-cache")
-	context.String(http.StatusNotFound, "")
+func StatsLogger(provider *services.ServiceProvider) func(context *gin.Context) {
+
+	return func(context *gin.Context) {
+
+		provider.MyStatsStore.Client.Incr("api.requests", 1)
+
+		start := time.Now()
+
+		context.Next()
+
+		provider.MyStatsStore.Client.PrecisionTiming("api.request.processing.time", time.Since(start))
+
+	}
+
+}
+
+func InvalidHandler(provider *services.ServiceProvider) func(context *gin.Context) {
+
+	return func(context *gin.Context) {
+		provider.MyStatsStore.Client.Incr("api.requests.invalid.count", 1)
+		context.Header("Cache-Control", "no-cache")
+		context.String(http.StatusNotFound, "")
+	}
 }
 
 func MethodNotAllowedHandler(context *gin.Context) {

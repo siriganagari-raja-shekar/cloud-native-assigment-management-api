@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"log/slog"
 	"os"
 )
 
@@ -22,7 +23,6 @@ func (hs *HealthzStore) OpenDBConnection(dialector gorm.Dialector, config *gorm.
 
 	if err != nil {
 		hs.db = nil
-		fmt.Printf("Error openting DB instance:%v\n", err)
 		return err
 	} else {
 		hs.db = gormDBInstance
@@ -57,8 +57,6 @@ func (hs *HealthzStore) Ping() (bool, error) {
 
 		dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s sslmode=disable", dbConf["host"], dbConf["port"], dbConf["user"], dbConf["password"])
 
-		fmt.Printf("DSN before creating DB:%s\n", dsn)
-
 		err := hs.OpenDBConnection(postgres.Open(dsn), db.CreateGORMConfig())
 
 		if err != nil {
@@ -70,14 +68,13 @@ func (hs *HealthzStore) Ping() (bool, error) {
 		res := hs.db.Exec(createDBCommand)
 
 		if res.Error != nil {
-			fmt.Printf("Database already exists: %v\n", res.Error)
+			slog.Warn(fmt.Sprintf("Init process: Database already exists: %v\n", res.Error))
 		} else {
-			fmt.Printf("Database created successfully\n")
+			slog.Info("Init process: Database created successfully\n")
 		}
 		err = hs.CloseDBConnection()
 
 		dsn = fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", dbConf["host"], dbConf["port"], dbConf["user"], dbConf["password"], dbConf["dbname"])
-		fmt.Printf("DSN after creating DB:%s\n", dsn)
 
 		err = hs.OpenDBConnection(postgres.Open(dsn), db.CreateGORMConfig())
 

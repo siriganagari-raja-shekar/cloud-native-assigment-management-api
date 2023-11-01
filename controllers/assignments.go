@@ -107,6 +107,7 @@ func GetPostAssignmentHandler(provider *services.ServiceProvider) func(*gin.Cont
 			})
 			return
 		} else {
+			provider.MyStatsStore.Client.Incr("assignments.count", 1)
 			context.JSON(http.StatusCreated, updatedAssignment)
 			return
 		}
@@ -161,6 +162,7 @@ func GetDeleteAssignmentsHandler(provider *services.ServiceProvider) func(*gin.C
 			})
 			return
 		} else {
+			provider.MyStatsStore.Client.Decr("assignments.count", 1)
 			context.String(http.StatusNoContent, "")
 			return
 		}
