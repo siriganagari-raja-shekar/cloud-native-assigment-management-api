@@ -6,6 +6,7 @@ import (
 	"csye6225-mainproject/routes"
 	"csye6225-mainproject/services"
 	"errors"
+	"github.com/smira/go-statsd"
 	"gorm.io/gorm"
 	"net/http"
 	"net/http/httptest"
@@ -50,9 +51,7 @@ func (m *MockHealthzStore) Ping() (bool, error) {
 
 func TestIntegreationHealthz(t *testing.T) {
 
-	serviceProvider := &services.ServiceProvider{
-		MyHealthzStore: &services.HealthzStore{},
-	}
+	serviceProvider := getServiceProviderForIntegrationTest(t)
 	router := routes.SetupRouter(serviceProvider)
 
 	(&conf.Configuration{}).Set()
@@ -70,9 +69,7 @@ func TestMainRouter(t *testing.T) {
 
 	t.Run("Calling /healthz endpoint should return 200 status OK when database is not in service", func(t *testing.T) {
 
-		serviceProvider := &services.ServiceProvider{
-			MyHealthzStore: &MockHealthzStore{isDBInService: true},
-		}
+		serviceProvider := getServiceProvider(t, true)
 		router := routes.SetupRouter(serviceProvider)
 
 		request := httptest.NewRequest(http.MethodGet, "/healthz", nil)
@@ -86,9 +83,7 @@ func TestMainRouter(t *testing.T) {
 
 	t.Run("Calling /healthz endpoint should return 503 when database is not in service", func(t *testing.T) {
 
-		serviceProvider := &services.ServiceProvider{
-			MyHealthzStore: &MockHealthzStore{isDBInService: false},
-		}
+		serviceProvider := getServiceProvider(t, false)
 		router := routes.SetupRouter(serviceProvider)
 
 		request := httptest.NewRequest(http.MethodGet, "/healthz", nil)
@@ -101,9 +96,7 @@ func TestMainRouter(t *testing.T) {
 	})
 
 	t.Run("Calling /healthz endpoint with every method except GET should return status 405 not allowed", func(t *testing.T) {
-		serviceProvider := &services.ServiceProvider{
-			MyHealthzStore: &MockHealthzStore{isDBInService: false},
-		}
+		serviceProvider := getServiceProvider(t, false)
 		router := routes.SetupRouter(serviceProvider)
 
 		httpMethods := []string{
@@ -130,9 +123,7 @@ func TestMainRouter(t *testing.T) {
 
 	t.Run("Accessing invalid URLs should give 404 not found", func(t *testing.T) {
 
-		serviceProvider := &services.ServiceProvider{
-			MyHealthzStore: &MockHealthzStore{isDBInService: false},
-		}
+		serviceProvider := getServiceProvider(t, false)
 		router := routes.SetupRouter(serviceProvider)
 
 		someInvalidURLs := []string{
@@ -155,9 +146,7 @@ func TestMainRouter(t *testing.T) {
 	})
 
 	t.Run("Check response should from any request should not have any payload", func(t *testing.T) {
-		serviceProvider := &services.ServiceProvider{
-			MyHealthzStore: &MockHealthzStore{isDBInService: false},
-		}
+		serviceProvider := getServiceProvider(t, false)
 		router := routes.SetupRouter(serviceProvider)
 
 		someURLs := []string{
@@ -183,9 +172,7 @@ func TestMainRouter(t *testing.T) {
 
 	t.Run("Requests with payload to valid URLs should return 400", func(t *testing.T) {
 
-		serviceProvider := &services.ServiceProvider{
-			MyHealthzStore: &MockHealthzStore{isDBInService: false},
-		}
+		serviceProvider := getServiceProvider(t, false)
 		router := routes.SetupRouter(serviceProvider)
 
 		validURL := "/healthz"
@@ -204,9 +191,7 @@ func TestMainRouter(t *testing.T) {
 
 	t.Run("Requests with valid URLs containing parameters should return 400", func(t *testing.T) {
 
-		serviceProvider := &services.ServiceProvider{
-			MyHealthzStore: &MockHealthzStore{isDBInService: false},
-		}
+		serviceProvider := getServiceProvider(t, false)
 		router := routes.SetupRouter(serviceProvider)
 
 		someURLs := []string{
@@ -227,9 +212,7 @@ func TestMainRouter(t *testing.T) {
 
 	t.Run("Requests with empty payload to valid URLs should not return 400", func(t *testing.T) {
 
-		serviceProvider := &services.ServiceProvider{
-			MyHealthzStore: &MockHealthzStore{isDBInService: false},
-		}
+		serviceProvider := getServiceProvider(t, false)
 		router := routes.SetupRouter(serviceProvider)
 
 		validURL := "/healthz"
@@ -245,9 +228,7 @@ func TestMainRouter(t *testing.T) {
 
 	t.Run("Response should not be cached by setting Cache-Control to no-cache header for all URLs", func(t *testing.T) {
 
-		serviceProvider := &services.ServiceProvider{
-			MyHealthzStore: &MockHealthzStore{isDBInService: false},
-		}
+		serviceProvider := getServiceProvider(t, false)
 		router := routes.SetupRouter(serviceProvider)
 
 		someURLs := []string{
@@ -268,6 +249,26 @@ func TestMainRouter(t *testing.T) {
 			assertString(t, got, want)
 		}
 	})
+}
+
+func getServiceProvider(t testing.TB, isDBInService bool) *services.ServiceProvider {
+	t.Helper()
+	return &services.ServiceProvider{
+		MyHealthzStore: &MockHealthzStore{isDBInService: isDBInService},
+		MyStatsStore: services.StatsStore{
+			Client: statsd.NewClient(""),
+		},
+	}
+}
+
+func getServiceProviderForIntegrationTest(t testing.TB) *services.ServiceProvider {
+	t.Helper()
+	return &services.ServiceProvider{
+		MyHealthzStore: &services.HealthzStore{},
+		MyStatsStore: services.StatsStore{
+			Client: statsd.NewClient(""),
+		},
+	}
 }
 
 func assertString(t testing.TB, got string, want string) {
