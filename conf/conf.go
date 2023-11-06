@@ -1,6 +1,7 @@
 package conf
 
 import (
+	"csye6225-mainproject/log"
 	"fmt"
 	"github.com/joho/godotenv"
 	"os"
@@ -15,9 +16,10 @@ func (c *Configuration) Set() {
 }
 
 func setupEnv() {
+	logger := log.GetLoggerInstance()
 	err := godotenv.Load(getEnvDir())
 	if err != nil {
-		fmt.Printf("%v\n", err.Error())
+		logger.Warn(fmt.Sprintf("%v", err.Error()))
 	}
 }
 

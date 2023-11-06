@@ -2,11 +2,11 @@ package services
 
 import (
 	"csye6225-mainproject/db"
+	"csye6225-mainproject/log"
 	"errors"
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"log/slog"
 	"os"
 )
 
@@ -53,6 +53,8 @@ func (hs *HealthzStore) Ping() (bool, error) {
 
 	if hs.db == nil {
 
+		logger := log.GetLoggerInstance()
+
 		dbConf := db.GetDBConf()
 
 		dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s sslmode=disable", dbConf["host"], dbConf["port"], dbConf["user"], dbConf["password"])
@@ -68,9 +70,9 @@ func (hs *HealthzStore) Ping() (bool, error) {
 		res := hs.db.Exec(createDBCommand)
 
 		if res.Error != nil {
-			slog.Warn(fmt.Sprintf("Init process: Database already exists: %v\n", res.Error))
+			logger.Warn(fmt.Sprintf("Init process: Database already exists: %v", res.Error))
 		} else {
-			slog.Info("Init process: Database created successfully\n")
+			logger.Info("Init process: Database created successfully")
 		}
 		err = hs.CloseDBConnection()
 

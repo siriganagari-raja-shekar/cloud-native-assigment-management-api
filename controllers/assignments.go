@@ -1,10 +1,10 @@
 package controllers
 
 import (
+	"csye6225-mainproject/log"
 	"csye6225-mainproject/models"
 	"csye6225-mainproject/services"
 	"encoding/json"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"io"
@@ -17,6 +17,8 @@ var validFields = map[string]string{"name": "", "num_of_attempts": "", "points":
 func GetGetAllAssignmentsHandler(provider *services.ServiceProvider) func(*gin.Context) {
 
 	return func(context *gin.Context) {
+
+		provider.MyStatsStore.Client.Incr("api.requests.assignments.getall", 1)
 
 		if !isBodyEmpty(context) {
 			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
@@ -43,6 +45,8 @@ func GetGetAllAssignmentsHandler(provider *services.ServiceProvider) func(*gin.C
 func GetGetSingleAssignmentHandler(provider *services.ServiceProvider) func(*gin.Context) {
 
 	return func(context *gin.Context) {
+
+		provider.MyStatsStore.Client.Incr("api.requests.assignments.getbyid", 1)
 
 		if !isBodyEmpty(context) {
 			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
@@ -81,6 +85,9 @@ func GetGetSingleAssignmentHandler(provider *services.ServiceProvider) func(*gin
 func GetPostAssignmentHandler(provider *services.ServiceProvider) func(*gin.Context) {
 
 	return func(context *gin.Context) {
+
+		provider.MyStatsStore.Client.Incr("api.requests.assignments.post", 1)
+
 		account := context.MustGet("currentUserAccount").(models.Account)
 
 		assignment, errors := convertBodyToValidAssignment(context)
@@ -117,6 +124,8 @@ func GetPostAssignmentHandler(provider *services.ServiceProvider) func(*gin.Cont
 func GetDeleteAssignmentsHandler(provider *services.ServiceProvider) func(*gin.Context) {
 
 	return func(context *gin.Context) {
+
+		provider.MyStatsStore.Client.Incr("api.requests.assignments.delete", 1)
 
 		if !isBodyEmpty(context) {
 			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
@@ -174,6 +183,9 @@ func GetDeleteAssignmentsHandler(provider *services.ServiceProvider) func(*gin.C
 func GetPutAssignmentsHandler(provider *services.ServiceProvider) func(*gin.Context) {
 
 	return func(context *gin.Context) {
+
+		provider.MyStatsStore.Client.Incr("api.requests.assignments.put", 1)
+
 		account := context.MustGet("currentUserAccount").(models.Account)
 
 		assignmentID := context.Param("id")
@@ -325,10 +337,13 @@ func isBodyEmpty(context *gin.Context) bool {
 }
 
 func extractBodyFromRequest(readCloser io.ReadCloser) []byte {
+
+	logger := log.GetLoggerInstance()
+
 	body, err := io.ReadAll(readCloser)
 
 	if err != nil {
-		fmt.Printf("Error reading body\n")
+		logger.Warn("Error reading request body")
 		return make([]byte, 0)
 	} else {
 		return body

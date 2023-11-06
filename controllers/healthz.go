@@ -9,6 +9,9 @@ import (
 func GetHealthzHandler(provider *services.ServiceProvider) func(ctx *gin.Context) {
 
 	return func(context *gin.Context) {
+
+		provider.MyStatsStore.Client.Incr("api.requests.assignments.healthz", 1)
+
 		context.Header("Cache-Control", "no-cache")
 		switch context.Request.Method {
 		case http.MethodGet:
