@@ -38,6 +38,9 @@ variable "error_log_file" {
 variable "account_csv_path" {
   type = string
 }
+variable "cloudwatch_config_file" {
+  type = string
+}
 
 
 source "amazon-ebs" "webapp" {
@@ -80,6 +83,7 @@ build {
       "ACCOUNT_CSV_PATH=${var.account_csv_path}",
       "STANDARD_LOG_FILE=${var.standard_log_file}",
       "ERROR_LOG_FILE=${var.error_log_file}",
+      "CLOUDWATCH_CONFIG_FILE=${var.cloudwatch_config_file}",
       "DEBIAN_FRONTEND=noninteractive",
       "CHECKPOINT_DISABLE=1"
     ]

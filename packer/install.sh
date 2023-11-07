@@ -15,6 +15,7 @@ sudo unzip app.zip
 sudo cp webapp-service.service /etc/systemd/system/webapp-service.service
 sudo cp app $USER_HOME_DIR
 sudo cp users.csv $ACCOUNT_CSV_PATH
+sudo cp aws-cloudwatch-config.json $CLOUDWATCH_CONFIG_FILE
 
 # Create log files
 sudo touch $STANDARD_LOG_FILE

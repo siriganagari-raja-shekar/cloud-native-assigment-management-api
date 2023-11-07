@@ -92,11 +92,24 @@ jobs:
           STANDARD_LOG_FILE: ${{ vars.SERVICE_LOG_FILE }}
           ERROR_LOG_FILE: ${{ vars.SERVICE_ERROR_LOG_FILE }}
 
+      - name: Populate cloudwatch config and copy to root folder
+        run: |
+          cd ./packer
+          sudo sed -i "s#PLACEHOLDER_OUT_LOG_FILE_PATH#$OUT_LOG_FILE_PATH#g" aws-cloudwatch-config.json
+          sudo sed -i "s#PLACEHOLDER_ERR_LOG_FILE_PATH#$ERR_LOG_FILE_PATH#g" aws-cloudwatch-config.json
+          sudo sed -i "s#PLACEHOLDER_REQUEST_LOG_FILE_PATH#$REQUEST_LOG_FILE_PATH#g" aws-cloudwatch-config.json
+          sudo cp aws-cloudwatch-config.json ./../
+          cd ./../
+        env:
+          OUT_LOG_FILE_PATH: ${{ vars.SERVICE_LOG_FILE }}
+          ERR_LOG_FILE_PATH: ${{ vars.SERVICE_ERROR_LOG_FILE }}
+          REQUEST_LOG_FILE_PATH: ${{ vars.SERVICE_REQUEST_LOG_FILE_PATH }}
+
       - name: Zip the artifacts and copy to packer folder
         run: |
           sudo apt-get update
           sudo apt-get install zip -y
-          sudo zip app.zip app users.csv webapp-service.service
+          sudo zip app.zip app users.csv webapp-service.service aws-cloudwatch-config.json
           sudo cp app.zip ./packer
 
       - name: Run `packer init`
@@ -121,3 +134,4 @@ jobs:
           PKR_VAR_standard_log_file: ${{ vars.SERVICE_LOG_FILE }}
           PKR_VAR_error_log_file: ${{ vars.SERVICE_ERROR_LOG_FILE }}
           PKR_VAR_account_csv_path: ${{ vars.ACCOUNT_CSV_PATH }}
+          PKR_VAR_cloudwatch_config_file: ${{ vars.CLOUDWATCH_CONFIG_FILE }}

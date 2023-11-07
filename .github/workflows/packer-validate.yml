@@ -49,3 +49,4 @@ jobs:
           PKR_VAR_standard_log_file: ${{ vars.SERVICE_LOG_FILE }}
           PKR_VAR_error_log_file: ${{ vars.SERVICE_ERROR_LOG_FILE }}
           PKR_VAR_account_csv_path: ${{ vars.ACCOUNT_CSV_PATH }}
+          PKR_VAR_cloudwatch_config_file: ${{ vars.CLOUDWATCH_CONFIG_FILE }}
