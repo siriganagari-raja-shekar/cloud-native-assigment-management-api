@@ -9,6 +9,11 @@ sudo apt-get install zip unzip -y
 sudo groupadd $LINUX_GROUP
 sudo useradd -s /bin/false -g $LINUX_GROUP -d $USER_HOME_DIR -m $LINUX_USER
 
+# Install AWS Cloudwatch agent
+sudo wget https://amazoncloudwatch-agent.s3.amazonaws.com/debian/amd64/latest/amazon-cloudwatch-agent.deb
+sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
+sudo rm ./amazon-cloudwatch-agent.deb
+
 # Unzip files from tmp directory and copy to necessary locations
 cd /tmp/
 sudo unzip app.zip
@@ -22,11 +27,6 @@ sudo touch $STANDARD_LOG_FILE
 sudo touch $ERROR_LOG_FILE
 sudo chown $LINUX_USER:$LINUX_GROUP $STANDARD_LOG_FILE $ERROR_LOG_FILE
 sudo chmod 600 $STANDARD_LOG_FILE $ERROR_LOG_FILE
-
-# Install AWS Cloudwatch agent
-sudo wget https://amazoncloudwatch-agent.s3.amazonaws.com/debian/amd64/latest/amazon-cloudwatch-agent.deb
-sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
-sudo rm ./amazon-cloudwatch-agent.deb
 
 # Navigate to webapp
 cd $USER_HOME_DIR
