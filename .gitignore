@@ -27,7 +27,7 @@ go.work
 *.csv
 *.bak
 *.zip
-*/*.log
+**/*.log
 
 #IDE files
 .idea/

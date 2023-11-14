@@ -5,6 +5,7 @@ import (
 	"csye6225-mainproject/models"
 	"csye6225-mainproject/services"
 	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"io"
@@ -20,7 +21,10 @@ func GetGetAllAssignmentsHandler(provider *services.ServiceProvider) func(*gin.C
 
 		provider.MyStatsStore.Client.Incr("api.requests.assignments.getall", 1)
 
+		logger := log.GetLoggerInstance()
+
 		if !isBodyEmpty(context) {
+			logger.Debug("Request body is not empty")
 			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"error": "Request body should be empty",
 			})
@@ -30,11 +34,13 @@ func GetGetAllAssignmentsHandler(provider *services.ServiceProvider) func(*gin.C
 		assignments, err := provider.MyAssignmentStore.GetAll()
 
 		if err != nil {
+			logger.Debug(fmt.Sprintf("Error getting assignments:%v", err))
 			context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 				"error": err.Error(),
 			})
 			return
 		} else {
+			logger.Debug(fmt.Sprintf("Assignments retrieved successfully"))
 			context.JSON(http.StatusOK, assignments)
 			return
 		}
@@ -48,7 +54,10 @@ func GetGetSingleAssignmentHandler(provider *services.ServiceProvider) func(*gin
 
 		provider.MyStatsStore.Client.Incr("api.requests.assignments.getbyid", 1)
 
+		logger := log.GetLoggerInstance()
+
 		if !isBodyEmpty(context) {
+			logger.Debug("Request body is not empty")
 			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"error": "Request body should be empty",
 			})
@@ -60,6 +69,7 @@ func GetGetSingleAssignmentHandler(provider *services.ServiceProvider) func(*gin
 		_, err := uuid.Parse(assignmentID)
 
 		if err != nil {
+			logger.Debug(fmt.Sprintf("Given ID in params is invalid:%v", assignmentID))
 			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"error": "Given ID is not a valid UUID. Please check again",
 			})
@@ -69,11 +79,13 @@ func GetGetSingleAssignmentHandler(provider *services.ServiceProvider) func(*gin
 		assignment, err := provider.MyAssignmentStore.GetOne(assignmentID)
 
 		if err != nil {
+			logger.Debug(fmt.Sprintf("Given ID is not found:%v", assignmentID))
 			context.AbortWithStatusJSON(http.StatusNotFound, gin.H{
 				"error": "Assignment with given ID not found. Please check again",
 			})
 			return
 		} else {
+			logger.Debug(fmt.Sprintf("Assignment with given ID is retrieved successfully"))
 			context.JSON(http.StatusOK, assignment)
 			return
 		}
@@ -88,11 +100,14 @@ func GetPostAssignmentHandler(provider *services.ServiceProvider) func(*gin.Cont
 
 		provider.MyStatsStore.Client.Incr("api.requests.assignments.post", 1)
 
+		logger := log.GetLoggerInstance()
+
 		account := context.MustGet("currentUserAccount").(models.Account)
 
 		assignment, errors := convertBodyToValidAssignment(context)
 
 		if errors != nil {
+			logger.Debug("Request body is invalid")
 			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"errors": errors,
 			})
@@ -109,11 +124,13 @@ func GetPostAssignmentHandler(provider *services.ServiceProvider) func(*gin.Cont
 
 		updatedAssignment, err := provider.MyAssignmentStore.AddOne(assignment)
 		if err != nil {
+			logger.Debug(fmt.Sprintf("Error creating the assignment:%v", err))
 			context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 				"error": err.Error(),
 			})
 			return
 		} else {
+			logger.Debug(fmt.Sprintf("Assignment created successfully"))
 			provider.MyStatsStore.Client.Incr("assignments.count", 1)
 			context.JSON(http.StatusCreated, updatedAssignment)
 			return
@@ -126,6 +143,8 @@ func GetDeleteAssignmentsHandler(provider *services.ServiceProvider) func(*gin.C
 	return func(context *gin.Context) {
 
 		provider.MyStatsStore.Client.Incr("api.requests.assignments.delete", 1)
+
+		logger := log.GetLoggerInstance()
 
 		if !isBodyEmpty(context) {
 			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
@@ -141,6 +160,7 @@ func GetDeleteAssignmentsHandler(provider *services.ServiceProvider) func(*gin.C
 		_, err := uuid.Parse(assignmentID)
 
 		if err != nil {
+			logger.Debug("Request body is not empty")
 			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"error": "Given ID is not a valid UUID. Please check again",
 			})
@@ -150,6 +170,7 @@ func GetDeleteAssignmentsHandler(provider *services.ServiceProvider) func(*gin.C
 		assignment, err := provider.MyAssignmentStore.GetOne(assignmentID)
 
 		if err != nil {
+			logger.Debug(fmt.Sprintf("Assignment with given ID is not found:%v", assignmentID))
 			context.AbortWithStatusJSON(http.StatusNotFound, gin.H{
 				"error": "Assignment with given ID not found. Please check again",
 			})
@@ -157,6 +178,7 @@ func GetDeleteAssignmentsHandler(provider *services.ServiceProvider) func(*gin.C
 		}
 
 		if assignment.AccountID != account.ID {
+			logger.Debug(fmt.Sprintf("User %v is not authorized to delete this assingment:%v", account.ID, assignmentID))
 			context.AbortWithStatusJSON(http.StatusForbidden, gin.H{
 				"error": "You are not authorized to delete this assignment",
 			})
@@ -166,12 +188,14 @@ func GetDeleteAssignmentsHandler(provider *services.ServiceProvider) func(*gin.C
 		_, err = provider.MyAssignmentStore.DeleteOne(&assignment)
 
 		if err != nil {
+			logger.Debug(fmt.Sprintf("Error deleting the assignment:%v", err))
 			context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 				"error": err.Error(),
 			})
 			return
 		} else {
 			provider.MyStatsStore.Client.Decr("assignments.count", 1)
+			logger.Debug(fmt.Sprintf("Assignment deleted successfully"))
 			context.String(http.StatusNoContent, "")
 			return
 		}
@@ -185,6 +209,8 @@ func GetPutAssignmentsHandler(provider *services.ServiceProvider) func(*gin.Cont
 	return func(context *gin.Context) {
 
 		provider.MyStatsStore.Client.Incr("api.requests.assignments.put", 1)
+
+		logger := log.GetLoggerInstance()
 
 		account := context.MustGet("currentUserAccount").(models.Account)
 
@@ -202,6 +228,7 @@ func GetPutAssignmentsHandler(provider *services.ServiceProvider) func(*gin.Cont
 		assignment, err := provider.MyAssignmentStore.GetOne(assignmentID)
 
 		if err != nil {
+			logger.Debug(fmt.Sprintf("Assignment with given ID is not found:%v", assignmentID))
 			context.AbortWithStatusJSON(http.StatusNotFound, gin.H{
 				"error": "Assignment with given ID not found. Please check again",
 			})
@@ -209,6 +236,7 @@ func GetPutAssignmentsHandler(provider *services.ServiceProvider) func(*gin.Cont
 		}
 
 		if assignment.AccountID != account.ID {
+			logger.Debug(fmt.Sprintf("User %v is not authorized to update this assingment:%v", account.ID, assignmentID))
 			context.AbortWithStatusJSON(http.StatusForbidden, gin.H{
 				"error": "You are not authorized to modify this assignment",
 			})
@@ -218,6 +246,7 @@ func GetPutAssignmentsHandler(provider *services.ServiceProvider) func(*gin.Cont
 		assignmentFromBody, errors := convertBodyToValidAssignment(context)
 
 		if errors != nil {
+			logger.Debug("Request body is invalid")
 			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"errors": errors,
 			})
@@ -234,11 +263,13 @@ func GetPutAssignmentsHandler(provider *services.ServiceProvider) func(*gin.Cont
 		updatedAssignment, err := provider.MyAssignmentStore.UpdateOneWithID(&assignment, assignmentID)
 
 		if err != nil {
+			logger.Debug(fmt.Sprintf("Error updating assignment:%v", err))
 			context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 				"error": err.Error(),
 			})
 			return
 		} else {
+			logger.Debug(fmt.Sprintf("Assignment updated successfully"))
 			context.JSON(http.StatusOK, updatedAssignment)
 			return
 		}

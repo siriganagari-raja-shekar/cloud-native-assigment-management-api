@@ -1,18 +1,21 @@
 package log
 
 import (
-	"fmt"
-	"io"
+	"context"
+	"errors"
 	"log/slog"
-	"net/http"
 	"os"
+	"path/filepath"
+	"runtime"
+	"strconv"
 	"sync"
+	"time"
 )
 
 type WebappLogger struct {
 	StdoutLogger *slog.Logger
 	StderrLogger *slog.Logger
-	instanceId   string
+	leveler      *slog.LevelVar
 }
 
 var (
@@ -27,41 +30,68 @@ func GetLoggerInstance() *WebappLogger {
 
 func createLoggerInstance() {
 
-	resp, err := http.Get("https://169.254.169.254/latest/meta-data/instance-id")
-	globalLogger = &WebappLogger{}
+	replace := func(groups []string, a slog.Attr) slog.Attr {
 
-	if err != nil || resp.StatusCode != http.StatusOK {
-		globalLogger.instanceId = "localhost"
-	} else {
-
-		bodyReader := resp.Body
-		defer bodyReader.Close()
-
-		body, err := io.ReadAll(bodyReader)
-		if err != nil {
-			globalLogger.instanceId = "localhost"
-		} else {
-			globalLogger.instanceId = string(body)
+		// Remove the directory from the source's filename.
+		if a.Key == slog.SourceKey {
+			source := a.Value.Any().(*slog.Source)
+			source.File = filepath.Base(source.File)
 		}
+		return a
 	}
 
-	globalLogger.StdoutLogger = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{AddSource: true}))
-	globalLogger.StderrLogger = slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{AddSource: true}))
-	globalLogger.Info(fmt.Sprintf("Instance id is set to: %s", globalLogger.instanceId))
+	lvl := &slog.LevelVar{}
+
+	logLevelString := os.Getenv("LOG_LEVEL")
+	logLevel, err := strconv.Atoi(logLevelString)
+	if err == nil {
+		if logLevel <= int(slog.LevelDebug) {
+			lvl.Set(slog.LevelDebug)
+		} else if logLevel <= int(slog.LevelInfo) {
+			lvl.Set(slog.LevelInfo)
+		} else if logLevel <= int(slog.LevelWarn) {
+			lvl.Set(slog.LevelWarn)
+		} else {
+			lvl.Set(slog.LevelError)
+		}
+	} else {
+		lvl.Set(slog.LevelWarn)
+	}
+
+	globalLogger = &WebappLogger{}
+	globalLogger.leveler = lvl
+	globalLogger.StdoutLogger = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{AddSource: true, ReplaceAttr: replace}))
+	globalLogger.StderrLogger = slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{AddSource: true, ReplaceAttr: replace}))
 }
 
 func (logger *WebappLogger) Info(msg string) {
-	logger.StdoutLogger.Info(msg)
+	_ = logger.log(msg, slog.LevelInfo)
 }
 
 func (logger *WebappLogger) Debug(msg string) {
-	logger.StdoutLogger.Debug(msg)
+	_ = logger.log(msg, slog.LevelDebug)
 }
 
 func (logger *WebappLogger) Warn(msg string) {
-	logger.StderrLogger.Warn(msg)
+	_ = logger.log(msg, slog.LevelWarn)
 }
 
 func (logger *WebappLogger) Error(msg string) {
-	logger.StderrLogger.Error(msg)
+	_ = logger.log(msg, slog.LevelError)
+}
+
+func (logger *WebappLogger) log(msg string, level slog.Level) error {
+	if level < logger.leveler.Level() {
+		return errors.New("log level is higher")
+	}
+	var pcs [1]uintptr
+	runtime.Callers(3, pcs[:]) // skip [Callers, Log<T>, getUpdatedRecord]
+	r := slog.NewRecord(time.Now(), level, msg, pcs[0])
+	var err error
+	if level <= slog.LevelInfo {
+		err = logger.StdoutLogger.Handler().Handle(context.Background(), r)
+	} else {
+		err = logger.StderrLogger.Handler().Handle(context.Background(), r)
+	}
+	return err
 }
