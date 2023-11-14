@@ -92,7 +92,7 @@ jobs:
           STANDARD_LOG_FILE: ${{ vars.SERVICE_LOG_FILE }}
           ERROR_LOG_FILE: ${{ vars.SERVICE_ERROR_LOG_FILE }}
 
-      - name: Populate cloudwatch config and copy to root folder
+      - name: Populate cloudwatch config
         run: |
           cd ./packer
           sudo sed -i "s#PLACEHOLDER_OUT_LOG_FILE_PATH#$OUT_LOG_FILE_PATH#g" aws-cloudwatch-config.json
@@ -109,7 +109,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install zip -y
-          sudo zip app.zip app users.csv webapp-service.service aws-cloudwatch-config.json
+          sudo zip app.zip app users.csv webapp-service.service
           sudo cp app.zip ./packer
 
       - name: Run `packer init`

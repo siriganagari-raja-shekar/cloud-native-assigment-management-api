@@ -74,6 +74,11 @@ build {
     destination = "/tmp/app.zip"
   }
 
+  provisioner "file" {
+    source      = "aws-cloudwatch-config.json"
+    destination = "/tmp/aws-cloudwatch-config.json"
+  }
+
   provisioner "shell" {
     scripts = ["install.sh"]
     environment_vars = [
