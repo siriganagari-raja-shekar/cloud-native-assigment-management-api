@@ -16,6 +16,7 @@ func addAssignmentRoutes(rg *gin.RouterGroup, provider *services.ServiceProvider
 	assignments.GET("", controllers.GetGetAllAssignmentsHandler(provider))
 	assignments.GET("/:id", controllers.GetGetSingleAssignmentHandler(provider))
 	assignments.POST("", controllers.GetPostAssignmentHandler(provider))
+	assignments.POST("/:id/submission", controllers.GetPostSubmissionHandler(provider))
 	assignments.PUT("/:id", controllers.GetPutAssignmentsHandler(provider))
 	assignments.DELETE("/:id", controllers.GetDeleteAssignmentsHandler(provider))
 }

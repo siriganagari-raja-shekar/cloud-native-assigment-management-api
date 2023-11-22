@@ -13,8 +13,6 @@ import (
 	"time"
 )
 
-var validFields = map[string]string{"name": "", "num_of_attempts": "", "points": "", "deadline": "", "assignment_created": "", "assignment_updated": ""}
-
 func GetGetAllAssignmentsHandler(provider *services.ServiceProvider) func(*gin.Context) {
 
 	return func(context *gin.Context) {
@@ -285,6 +283,8 @@ func convertBodyToValidAssignment(context *gin.Context) (*models.Assignment, []s
 
 	err := json.Unmarshal(jsonBody, &bodyMap)
 
+	var validFields = map[string]string{"name": "", "num_of_attempts": "", "points": "", "deadline": "", "assignment_created": "", "assignment_updated": ""}
+
 	if err != nil {
 		return nil, []string{"Invalid JSON. Please check again"}
 	}
@@ -292,7 +292,7 @@ func convertBodyToValidAssignment(context *gin.Context) (*models.Assignment, []s
 	for k, _ := range bodyMap {
 		_, exists := validFields[k]
 		if !exists {
-			errors = append(errors, k+" field in request body is invalid")
+			errors = append(errors, fmt.Sprintf("'%s' field in body is invalid", k))
 		}
 	}
 

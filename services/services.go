@@ -12,6 +12,7 @@ import (
 type ServiceProvider struct {
 	MyAccountStore    AccountStore
 	MyAssignmentStore AssignmentStore
+	MySubmissionStore SubmissionStore
 	MyHealthzStore    db.DatabaseHelper
 	MyStatsStore      StatsStore
 }
@@ -26,6 +27,7 @@ func (s *ServiceProvider) PopulateDBInServices() {
 	}
 	s.MyAccountStore.Database = s.MyHealthzStore.GetDBConnection()
 	s.MyAssignmentStore.Database = s.MyHealthzStore.GetDBConnection()
+	s.MySubmissionStore.Database = s.MyHealthzStore.GetDBConnection()
 }
 
 func (s *ServiceProvider) InsertInitialUsersIntoDB() {
@@ -45,6 +47,11 @@ func (s *ServiceProvider) InsertInitialUsersIntoDB() {
 	err = s.MyAccountStore.Database.AutoMigrate(&models.Assignment{})
 	if err != nil {
 		logger.Error(fmt.Sprintf("Init process: Error migrating assignments: %v", err))
+	}
+
+	err = s.MySubmissionStore.Database.AutoMigrate(&models.Submission{})
+	if err != nil {
+		logger.Error(fmt.Sprintf("Init process: Error migrating submissions: %v", err))
 	}
 
 	logger.Info("Init process: Successfully migrated models")
