@@ -34,20 +34,24 @@ func (ss *SubmissionStore) GetSubmissionsByAssignmentIDAndAccountID(accountID st
 	}
 }
 
-func (ss *SubmissionStore) PublishToSNS(submission *models.Submission, account *models.Account, client *sns.SNS) error {
+func (ss *SubmissionStore) PublishToSNS(submission *models.Submission, account *models.Account, assignment *models.Assignment, client *sns.SNS) error {
 	logger := log.GetLoggerInstance()
 	type Message struct {
-		AssignmentID  string `json:"assignment_id"`
-		AccountID     string `json:"account_id"`
-		SubmissionUrl string `json:"submission_url"`
-		Email         string `json:"email"`
+		SubmissionId   string `json:"submission_id"`
+		AssignmentID   string `json:"assignment_id"`
+		AssignmentName string `json:"assignment_name"`
+		AccountID      string `json:"account_id"`
+		SubmissionUrl  string `json:"submission_url"`
+		Email          string `json:"email"`
 	}
 
 	message := Message{
-		AssignmentID:  submission.AssignmentID,
-		AccountID:     submission.AccountID,
-		SubmissionUrl: submission.SubmissionUrl,
-		Email:         account.Email,
+		SubmissionId:   submission.ID,
+		AssignmentID:   submission.AssignmentID,
+		AssignmentName: assignment.Name,
+		AccountID:      submission.AccountID,
+		SubmissionUrl:  submission.SubmissionUrl,
+		Email:          account.Email,
 	}
 
 	messageMarshalled, err := json.MarshalIndent(message, "", strings.Repeat(" ", 4))

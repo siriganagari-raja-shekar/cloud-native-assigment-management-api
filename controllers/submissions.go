@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 func GetPostSubmissionHandler(provider *services.ServiceProvider) func(*gin.Context) {
@@ -54,6 +55,14 @@ func GetPostSubmissionHandler(provider *services.ServiceProvider) func(*gin.Cont
 			return
 		}
 
+		if time.Now().After(assignment.Deadline) {
+			logger.Debug(fmt.Sprintf("Submission is late"))
+			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				"error": "Assignment is closed for submissions",
+			})
+			return
+		}
+
 		submission = &models.Submission{
 			AccountID:         account.ID,
 			SubmissionUrl:     submission.SubmissionUrl,
@@ -88,7 +97,7 @@ func GetPostSubmissionHandler(provider *services.ServiceProvider) func(*gin.Cont
 			return
 		} else {
 			logger.Debug(fmt.Sprintf("Submission created successfully"))
-			_ = provider.MySubmissionStore.PublishToSNS(updatedSubmission, &account, provider.MySubmissionStore.SnsClient)
+			_ = provider.MySubmissionStore.PublishToSNS(updatedSubmission, &account, &assignment, provider.MySubmissionStore.SnsClient)
 			provider.MyStatsStore.Client.Incr("submissions.count", 1)
 			context.JSON(http.StatusCreated, updatedSubmission)
 			return
