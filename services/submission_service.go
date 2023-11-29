@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 	"os"
 	"strings"
+	"time"
 )
 
 type SubmissionStore struct {
@@ -37,18 +38,22 @@ func (ss *SubmissionStore) GetSubmissionsByAssignmentIDAndAccountID(accountID st
 func (ss *SubmissionStore) PublishToSNS(submission *models.Submission, account *models.Account, assignment *models.Assignment, client *sns.SNS) error {
 	logger := log.GetLoggerInstance()
 	type Message struct {
-		SubmissionId   string `json:"submission_id"`
-		AssignmentID   string `json:"assignment_id"`
-		AssignmentName string `json:"assignment_name"`
-		AccountID      string `json:"account_id"`
-		SubmissionUrl  string `json:"submission_url"`
-		Email          string `json:"email"`
+		SubmissionId   string    `json:"submission_id"`
+		AssignmentID   string    `json:"assignment_id"`
+		AssignmentName string    `json:"assignment_name"`
+		Username       string    `json:"username"`
+		SubmissionDate time.Time `json:"submission_date"`
+		AccountID      string    `json:"account_id"`
+		SubmissionUrl  string    `json:"submission_url"`
+		Email          string    `json:"email"`
 	}
 
 	message := Message{
 		SubmissionId:   submission.ID,
 		AssignmentID:   submission.AssignmentID,
 		AssignmentName: assignment.Name,
+		Username:       account.FirstName + " " + account.LastName,
+		SubmissionDate: submission.SubmissionDate,
 		AccountID:      submission.AccountID,
 		SubmissionUrl:  submission.SubmissionUrl,
 		Email:          account.Email,

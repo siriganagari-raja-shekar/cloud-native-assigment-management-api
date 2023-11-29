@@ -138,7 +138,7 @@ func convertBodyToValidSubmission(context *gin.Context) (*models.Submission, []s
 			errors = append(errors, "submission_url should be a valid url")
 		}
 	} else {
-		errors = append(errors, "submission_url should be a valid url")
+		errors = append(errors, "submission_url must be present and should be a valid url")
 	}
 
 	if len(errors) > 0 {
