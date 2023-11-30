@@ -57,7 +57,7 @@ func GetPostSubmissionHandler(provider *services.ServiceProvider) func(*gin.Cont
 
 		if time.Now().After(assignment.Deadline) {
 			logger.Debug(fmt.Sprintf("Submission is late"))
-			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			context.AbortWithStatusJSON(http.StatusForbidden, gin.H{
 				"error": "Assignment is closed for submissions",
 			})
 			return
@@ -81,7 +81,7 @@ func GetPostSubmissionHandler(provider *services.ServiceProvider) func(*gin.Cont
 		} else {
 			if len(currSubmissions) >= assignment.NumOfAttempts {
 				logger.Debug("Number of attempts reached")
-				context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				context.AbortWithStatusJSON(http.StatusForbidden, gin.H{
 					"error": "You have already reached the number of attempts",
 				})
 				return
