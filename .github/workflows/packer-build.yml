@@ -20,121 +20,121 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-#      - name: Setup `packer`
-#        uses: hashicorp/setup-packer@main
-#        with:
-#          version: ${{ env.PRODUCT_VERSION }}
-#
-#      - name: Setup Go 1.21.1
-#        uses: actions/setup-go@v4
-#        with:
-#          go-version: 1.21.1
-#
-#      - name: Display Go version
-#        run: go version
-#
-#      - name: Install dependencies
-#        run: go get -u -d ./...
-#
-#      - name: Make the script files executable
-#        run: chmod +x install_db.sh
-#
-#      - name: Run shell script to setup database
-#        run: ./install_db.sh
-#        env:
-#          POSTGRES_USER: ${{ vars.POSTGRES_USER }}
-#          POSTGRES_PASSWORD: ${{ vars.POSTGRES_PASSWORD }}
-#
-#      - name: Running healthz integration test
-#        run: |
-#          cd ./cmd/app
-#          ls -l
-#          go test -run TestIntegreationHealthz
-#          cd ./../../
-#        env:
-#          POSTGRES_HOST: ${{ vars.POSTGRES_HOST }}
-#          POSTGRES_PORT: ${{ vars.POSTGRES_PORT }}
-#          POSTGRES_USER: ${{ vars.POSTGRES_USER }}
-#          POSTGRES_PASSWORD: ${{ vars.POSTGRES_PASSWORD }}
-#          POSTGRES_DB: ${{ vars.POSTGRES_DB }}
-#
-#      - name: Build application and copy binary to project root
-#        run: |
-#          cd ./cmd/app
-#          go build
-#          sudo cp app ./../../
-#          cd ./../../
-#
-#      - name: Populate required files in project root
-#        run: |
-#          sudo touch users.csv
-#          sudo chmod 666 users.csv
-#          echo "$USERS_CSV" > users.csv
-#        env:
-#          USERS_CSV: ${{ secrets.USERS_CSV }}
-#
-#      - name: Populate service template file
-#        run: |
-#          sudo sed -i "s#LINUX_USER#$LINUX_USER#g" webapp-service-template.service
-#          sudo sed -i "s#LINUX_GROUP#$LINUX_GROUP#g" webapp-service-template.service
-#          sudo sed -i "s#WORKING_DIR#$WORKING_DIR#g" webapp-service-template.service
-#          sudo sed -i "s#ENV_FILE_PATH#$ENV_FILE_PATH#g" webapp-service-template.service
-#          sudo sed -i "s#STANDARD_LOG_FILE#$STANDARD_LOG_FILE#g" webapp-service-template.service
-#          sudo sed -i "s#ERROR_LOG_FILE#$ERROR_LOG_FILE#g" webapp-service-template.service
-#          sudo mv webapp-service-template.service webapp-service.service
-#          sudo chmod 666 webapp-service.service
-#          sudo cat webapp-service.service
-#        env:
-#          LINUX_USER: ${{ vars.LINUX_USER }}
-#          LINUX_GROUP: ${{ vars.LINUX_GROUP }}
-#          WORKING_DIR: ${{ vars.USER_HOME_DIR }}
-#          ENV_FILE_PATH: ${{ vars.SERVICE_ENV_FILE_PATH }}
-#          STANDARD_LOG_FILE: ${{ vars.SERVICE_LOG_FILE }}
-#          ERROR_LOG_FILE: ${{ vars.SERVICE_ERROR_LOG_FILE }}
-#
-#      - name: Populate cloudwatch config
-#        run: |
-#          cd ./packer
-#          sudo sed -i "s#PLACEHOLDER_OUT_LOG_FILE_PATH#$OUT_LOG_FILE_PATH#g" aws-cloudwatch-config.json
-#          sudo sed -i "s#PLACEHOLDER_ERR_LOG_FILE_PATH#$ERR_LOG_FILE_PATH#g" aws-cloudwatch-config.json
-#          sudo sed -i "s#PLACEHOLDER_REQUEST_LOG_FILE_PATH#$REQUEST_LOG_FILE_PATH#g" aws-cloudwatch-config.json
-#          sudo cp aws-cloudwatch-config.json ./../
-#          cd ./../
-#        env:
-#          OUT_LOG_FILE_PATH: ${{ vars.SERVICE_LOG_FILE }}
-#          ERR_LOG_FILE_PATH: ${{ vars.SERVICE_ERROR_LOG_FILE }}
-#          REQUEST_LOG_FILE_PATH: ${{ vars.SERVICE_REQUEST_LOG_FILE_PATH }}
-#
-#      - name: Zip the artifacts and copy to packer folder
-#        run: |
-#          sudo apt-get update
-#          sudo apt-get install zip -y
-#          sudo zip app.zip app users.csv webapp-service.service
-#          sudo cp app.zip ./packer
-#
-#      - name: Run `packer init`
-#        run: |
-#          cd ./packer
-#          packer init .
-#
-#      - name: Build AMI using Packer
-#        run: |
-#          cd ./packer
-#          packer build .
-#        env:
-#          AWS_ACCESS_KEY_ID: ${{ secrets.DEV_AWS_ACCESS_KEY_ID }}
-#          AWS_SECRET_ACCESS_KEY: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
-#          PKR_VAR_aws_region: ${{ vars.AWS_REGION }}
-#          PKR_VAR_source_ami_id: ${{ vars.SOURCE_AMI_ID }}
-#          PKR_VAR_ssh_username: ${{ secrets.SSH_USERNAME }}
-#          PKR_VAR_dev_subnet_id: ${{ vars.DEV_SUBNET_ID }}
-#          PKR_VAR_linux_group: ${{ vars.LINUX_GROUP }}
-#          PKR_VAR_linux_user: ${{ vars.LINUX_USER }}
-#          PKR_VAR_user_home_dir: ${{ vars.USER_HOME_DIR }}
-#          PKR_VAR_standard_log_file: ${{ vars.SERVICE_LOG_FILE }}
-#          PKR_VAR_error_log_file: ${{ vars.SERVICE_ERROR_LOG_FILE }}
-#          PKR_VAR_account_csv_path: ${{ vars.ACCOUNT_CSV_PATH }}
-#          PKR_VAR_cloudwatch_config_file: ${{ vars.CLOUDWATCH_CONFIG_FILE }}
+      - name: Setup `packer`
+        uses: hashicorp/setup-packer@main
+        with:
+          version: ${{ env.PRODUCT_VERSION }}
+
+      - name: Setup Go 1.21.1
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21.1
+
+      - name: Display Go version
+        run: go version
+
+      - name: Install dependencies
+        run: go get -u -d ./...
+
+      - name: Make the script files executable
+        run: chmod +x install_db.sh
+
+      - name: Run shell script to setup database
+        run: ./install_db.sh
+        env:
+          POSTGRES_USER: ${{ vars.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ vars.POSTGRES_PASSWORD }}
+
+      - name: Running healthz integration test
+        run: |
+          cd ./cmd/app
+          ls -l
+          go test -run TestIntegreationHealthz
+          cd ./../../
+        env:
+          POSTGRES_HOST: ${{ vars.POSTGRES_HOST }}
+          POSTGRES_PORT: ${{ vars.POSTGRES_PORT }}
+          POSTGRES_USER: ${{ vars.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ vars.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ vars.POSTGRES_DB }}
+
+      - name: Build application and copy binary to project root
+        run: |
+          cd ./cmd/app
+          go build
+          sudo cp app ./../../
+          cd ./../../
+
+      - name: Populate required files in project root
+        run: |
+          sudo touch users.csv
+          sudo chmod 666 users.csv
+          echo "$USERS_CSV" > users.csv
+        env:
+          USERS_CSV: ${{ secrets.USERS_CSV }}
+
+      - name: Populate service template file
+        run: |
+          sudo sed -i "s#LINUX_USER#$LINUX_USER#g" webapp-service-template.service
+          sudo sed -i "s#LINUX_GROUP#$LINUX_GROUP#g" webapp-service-template.service
+          sudo sed -i "s#WORKING_DIR#$WORKING_DIR#g" webapp-service-template.service
+          sudo sed -i "s#ENV_FILE_PATH#$ENV_FILE_PATH#g" webapp-service-template.service
+          sudo sed -i "s#STANDARD_LOG_FILE#$STANDARD_LOG_FILE#g" webapp-service-template.service
+          sudo sed -i "s#ERROR_LOG_FILE#$ERROR_LOG_FILE#g" webapp-service-template.service
+          sudo mv webapp-service-template.service webapp-service.service
+          sudo chmod 666 webapp-service.service
+          sudo cat webapp-service.service
+        env:
+          LINUX_USER: ${{ vars.LINUX_USER }}
+          LINUX_GROUP: ${{ vars.LINUX_GROUP }}
+          WORKING_DIR: ${{ vars.USER_HOME_DIR }}
+          ENV_FILE_PATH: ${{ vars.SERVICE_ENV_FILE_PATH }}
+          STANDARD_LOG_FILE: ${{ vars.SERVICE_LOG_FILE }}
+          ERROR_LOG_FILE: ${{ vars.SERVICE_ERROR_LOG_FILE }}
+
+      - name: Populate cloudwatch config
+        run: |
+          cd ./packer
+          sudo sed -i "s#PLACEHOLDER_OUT_LOG_FILE_PATH#$OUT_LOG_FILE_PATH#g" aws-cloudwatch-config.json
+          sudo sed -i "s#PLACEHOLDER_ERR_LOG_FILE_PATH#$ERR_LOG_FILE_PATH#g" aws-cloudwatch-config.json
+          sudo sed -i "s#PLACEHOLDER_REQUEST_LOG_FILE_PATH#$REQUEST_LOG_FILE_PATH#g" aws-cloudwatch-config.json
+          sudo cp aws-cloudwatch-config.json ./../
+          cd ./../
+        env:
+          OUT_LOG_FILE_PATH: ${{ vars.SERVICE_LOG_FILE }}
+          ERR_LOG_FILE_PATH: ${{ vars.SERVICE_ERROR_LOG_FILE }}
+          REQUEST_LOG_FILE_PATH: ${{ vars.SERVICE_REQUEST_LOG_FILE_PATH }}
+
+      - name: Zip the artifacts and copy to packer folder
+        run: |
+          sudo apt-get update
+          sudo apt-get install zip -y
+          sudo zip app.zip app users.csv webapp-service.service
+          sudo cp app.zip ./packer
+
+      - name: Run `packer init`
+        run: |
+          cd ./packer
+          packer init .
+
+      - name: Build AMI using Packer
+        run: |
+          cd ./packer
+          packer build .
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.DEV_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
+          PKR_VAR_aws_region: ${{ vars.AWS_REGION }}
+          PKR_VAR_source_ami_id: ${{ vars.SOURCE_AMI_ID }}
+          PKR_VAR_ssh_username: ${{ secrets.SSH_USERNAME }}
+          PKR_VAR_dev_subnet_id: ${{ vars.DEV_SUBNET_ID }}
+          PKR_VAR_linux_group: ${{ vars.LINUX_GROUP }}
+          PKR_VAR_linux_user: ${{ vars.LINUX_USER }}
+          PKR_VAR_user_home_dir: ${{ vars.USER_HOME_DIR }}
+          PKR_VAR_standard_log_file: ${{ vars.SERVICE_LOG_FILE }}
+          PKR_VAR_error_log_file: ${{ vars.SERVICE_ERROR_LOG_FILE }}
+          PKR_VAR_account_csv_path: ${{ vars.ACCOUNT_CSV_PATH }}
+          PKR_VAR_cloudwatch_config_file: ${{ vars.CLOUDWATCH_CONFIG_FILE }}
 
       - name: Install AWS cli and configure demo credentials
         run: |
@@ -173,10 +173,9 @@ jobs:
             if [ "$INSTANCE_REFRESH_STATUS" = "Successful" ] || [ "$INSTANCE_REFRESH_STATUS" = "Failed" ]; then
               break
             fi
-            
-            echo "Waiting for Instance Refresh to complete..."
+            echo "Waiting for Instance Refresh to complete. Current Status: $INSTANCE_REFRESH_STATUS"
             sleep 10
           done
-          echo "Instance refresh status after loop: $INSTANCE_REFRESH_STATUS"
+          echo "Instance refresh status after completion: $INSTANCE_REFRESH_STATUS"
         env:
           AWS_REGION: ${{ vars.DEMO_AWS_REGION }}
