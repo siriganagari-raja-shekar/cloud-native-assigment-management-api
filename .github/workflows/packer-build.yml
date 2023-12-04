@@ -146,7 +146,7 @@ jobs:
           aws configure set region $DEMO_AWS_REGION --profile demo
         env:
           DEMO_AWS_ACCESS_KEY_ID: ${{ secrets.DEMO_AWS_ACCESS_KEY_ID }}
-          DEMO_AWS_REGION: ${{ secrets.DEMO_AWS_REGION }}
+          DEMO_AWS_REGION: ${{ vars.DEMO_AWS_REGION }}
           DEMO_AWS_SECRET_ACCESS_KEY: ${{ secrets.DEMO_AWS_SECRET_ACCESS_KEY }}
 
       - name : Perform instance refresh on demo auto scaling group
@@ -179,4 +179,4 @@ jobs:
           done
           echo "Instance refresh status after loop: $INSTANCE_REFRESH_STATUS"
         env:
-          AWS_REGION: ${{ secrets.DEMO_AWS_REGION }}
+          AWS_REGION: ${{ vars.DEMO_AWS_REGION }}
