@@ -135,3 +135,48 @@ jobs:
           PKR_VAR_error_log_file: ${{ vars.SERVICE_ERROR_LOG_FILE }}
           PKR_VAR_account_csv_path: ${{ vars.ACCOUNT_CSV_PATH }}
           PKR_VAR_cloudwatch_config_file: ${{ vars.CLOUDWATCH_CONFIG_FILE }}
+
+      - name: Install AWS cli and configure demo credentials
+        run: |
+          sudo apt-get update
+          sudo apt-get install awscli
+          aws --version
+          aws configure set aws_access_key_id $DEMO_AWS_ACCESS_KEY_ID --profile demo
+          aws configure set aws_secret_access_key $DEMO_AWS_SECRET_ACCESS_KEY --profile demo
+          aws configure set region $DEMO_AWS_REGION --profile demo
+        env:
+          DEMO_AWS_ACCESS_KEY_ID: ${{ secrets.DEMO_AWS_ACCESS_KEY_ID }}
+          DEMO_AWS_REGION: ${{ secrets.DEMO_AWS_REGION }}
+          DEMO_AWS_SECRET_ACCESS_KEY: ${{ secrets.DEMO_AWS_SECRET_ACCESS_KEY }}
+
+      - name : Perform instance refresh on demo auto scaling group
+        run: |
+          LATEST_IMAGE_ID=$(aws ec2 describe-images --executable-users self --query 'sort_by(Images, &CreationDate)[-1].ImageId' --region $AWS_REGION --profile demo --output text)
+  
+          LT_ID=$(aws ec2 describe-launch-templates --filters "Name=launch-template-name,Values=webapp-*" --query 'sort_by(LaunchTemplates, &CreateTime)[-1].LaunchTemplateId' --profile demo --region $AWS_REGION --output text)
+  
+          CURR_VERSION=$(aws ec2 describe-launch-templates --filters "Name=launch-template-name,Values=webapp-*" --query 'sort_by(LaunchTemplates, &CreateTime)[-1].LatestVersionNumber' --profile demo --region $AWS_REGION --output text)
+          
+          aws ec2 create-launch-template-version --launch-template-id $LT_ID --source-version $CURR_VERSION --launch-template-data "ImageId=$LATEST_IMAGE_ID" --profile demo --region $AWS_REGION
+          
+          CURR_VERSION=$(aws ec2 describe-launch-templates --filters "Name=launch-template-name,Values=webapp-*" --query 'sort_by(LaunchTemplates, &CreateTime)[-1].LatestVersionNumber' --profile demo --region $AWS_REGION --output text)
+          
+          AS_GROUP_NAME=$(aws autoscaling describe-auto-scaling-groups --filters "Name=tag:instance-type,Values=webapp-instance" --query 'sort_by(AutoScalingGroups, &CreatedTime)[-1].AutoScalingGroupName' --profile demo --region $AWS_REGION --output text)
+          
+          aws autoscaling update-auto-scaling-group --auto-scaling-group-name $AS_GROUP_NAME --launch-template "LaunchTemplateId=$LT_ID,Version=$CURR_VERSION" --profile demo --region $AWS_REGION
+          
+          INSTANCE_REFRESH_ID=$(aws autoscaling start-instance-refresh --auto-scaling-group-name $AS_GROUP_NAME --query "InstanceRefreshId" --profile demo --region $AWS_REGION --output text)
+          
+          while true; do
+            INSTANCE_REFRESH_STATUS=$(aws autoscaling describe-instance-refreshes --auto-scaling-group-name $AS_GROUP_NAME --instance-refresh-ids $INSTANCE_REFRESH_ID --query 'InstanceRefreshes[0].Status' --profile demo --region $AWS_REGION --output text)
+            
+            if [ "$INSTANCE_REFRESH_STATUS" = "Successful" ] || [ "$INSTANCE_REFRESH_STATUS" = "Failed" ]; then
+              break
+            fi
+            
+            echo "Waiting for Instance Refresh to complete..."
+            sleep 10
+          done
+          echo "Instance refresh status after loop: $INSTANCE_REFRESH_STATUS"
+        env:
+          AWS_REGION: ${{ secrets.DEMO_AWS_REGION }}

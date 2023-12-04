@@ -21,3 +21,9 @@ Rest API for CSYE6225 Fall 2023
    go build cmd/app/main.go
    ./main.exe
    ```
+   
+## Step to import SSL certificate into AWS
+   
+   ```
+   aws acm import-certificate --certificate fileb://your/dir/certificate-file --private-key fileb://your/dir/private-key-file --certificate-chain fileb://your/dir/certificate-chain-file --profile your_profile --region your_aws_region
+   ```
