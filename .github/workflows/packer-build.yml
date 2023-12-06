@@ -152,9 +152,9 @@ jobs:
       - name : Perform instance refresh on demo auto scaling group
         run: |
           LATEST_IMAGE_ID=$(aws ec2 describe-images --executable-users self --query 'sort_by(Images, &CreationDate)[-1].ImageId' --region $AWS_REGION --profile demo --output text)
-  
+          
           LT_ID=$(aws ec2 describe-launch-templates --filters "Name=launch-template-name,Values=webapp-*" --query 'sort_by(LaunchTemplates, &CreateTime)[-1].LaunchTemplateId' --profile demo --region $AWS_REGION --output text)
-  
+          
           CURR_VERSION=$(aws ec2 describe-launch-templates --filters "Name=launch-template-name,Values=webapp-*" --query 'sort_by(LaunchTemplates, &CreateTime)[-1].LatestVersionNumber' --profile demo --region $AWS_REGION --output text)
           
           aws ec2 create-launch-template-version --launch-template-id $LT_ID --source-version $CURR_VERSION --launch-template-data "ImageId=$LATEST_IMAGE_ID" --profile demo --region $AWS_REGION
@@ -169,13 +169,15 @@ jobs:
           
           while true; do
             INSTANCE_REFRESH_STATUS=$(aws autoscaling describe-instance-refreshes --auto-scaling-group-name $AS_GROUP_NAME --instance-refresh-ids $INSTANCE_REFRESH_ID --query 'InstanceRefreshes[0].Status' --profile demo --region $AWS_REGION --output text)
-            
-            if [ "$INSTANCE_REFRESH_STATUS" = "Successful" ] || [ "$INSTANCE_REFRESH_STATUS" = "Failed" ]; then
+          
+            if [ "$INSTANCE_REFRESH_STATUS" = "Successful" ] || [ "$INSTANCE_REFRESH_STATUS" = "Failed" ] || [ "$INSTANCE_REFRESH_STATUS" = "Cancelled" ]; then
               break
             fi
             echo "Waiting for Instance Refresh to complete. Current Status: $INSTANCE_REFRESH_STATUS"
             sleep 10
           done
-          echo "Instance refresh status after completion: $INSTANCE_REFRESH_STATUS"
-        env:
-          AWS_REGION: ${{ vars.DEMO_AWS_REGION }}
+          if [ "$INSTANCE_REFRESH_STATUS" != "Successful" ]; then
+            exit 1
+          fi
+    env:
+      AWS_REGION: ${{ vars.DEMO_AWS_REGION }}

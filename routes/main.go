@@ -27,7 +27,7 @@ func SetupRouter(provider *services.ServiceProvider) *gin.Engine {
 	unauthorized := r.Group("/")
 	unauthorized.Any("/healthz", controllers.GetHealthzHandler(provider))
 
-	v1 := r.Group("/v1")
+	v1 := r.Group("/demo")
 	addAssignmentRoutes(v1, provider)
 
 	r.NoRoute(utils.InvalidHandler(provider))
